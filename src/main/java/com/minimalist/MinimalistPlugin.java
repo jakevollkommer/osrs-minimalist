@@ -155,24 +155,36 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	public boolean drawObject(Scene scene, TileObject object)
 	{
 		int objectId = object.getId();
-		if (hiddenObjectIds.contains(objectId))
+		// object IDs are reused across the game, so GOTR rules only apply when the
+		// loaded scene actually contains the arena (this must read the passed scene,
+		// not client state, because statics are filtered mid-upload)
+		if (sceneContainsRegion(scene, GotrArena.ARENA_REGION))
 		{
-			return false;
+			if (hiddenObjectIds.contains(objectId))
+			{
+				return false;
+			}
+
+			if (GuardianStatues.STATUE_OBJECTS.contains(objectId))
+			{
+				// animated objects pass through here every frame, so statue visibility
+				// follows rotations and inventory instantly
+				return !isHiddenStatue(objectId);
+			}
+
+			if (isHiddenArenaGenericScenery(scene, objectId))
+			{
+				return false;
+			}
 		}
 
-		if (GuardianStatues.STATUE_OBJECTS.contains(objectId))
-		{
-			// animated objects pass through here every frame, so statue visibility
-			// follows rotations and inventory instantly
-			return !isHiddenStatue(objectId);
-		}
-
-		return !isHiddenAltarScenery(scene, objectId) && !isHiddenArenaGenericScenery(scene, objectId);
+		return !isHiddenAltarScenery(scene, objectId);
 	}
 
 	private boolean isHiddenNpc(NPC npc)
 	{
-		if (hiddenNpcIds.contains(npc.getId()))
+		// NPC IDs are reused across the game too, so GOTR NPC rules stay scene-scoped
+		if (sceneIsGotr && hiddenNpcIds.contains(npc.getId()))
 		{
 			return true;
 		}
