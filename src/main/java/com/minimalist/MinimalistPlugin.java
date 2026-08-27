@@ -3,21 +3,15 @@
 package com.minimalist;
 
 import com.google.inject.Provides;
-import com.minimalist.altars.Altars;
-import com.minimalist.gotr.GotrArena;
-import com.minimalist.gotr.GotrHud;
-import com.minimalist.gotr.GotrNpcs;
-import com.minimalist.gotr.GuardianStatues;
+import com.minimalist.altars.AltarContent;
+import com.minimalist.gotr.GotrContent;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.ItemContainer;
-import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
@@ -31,7 +25,6 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.PostMenuSort;
 import net.runelite.api.events.ScriptPreFired;
-import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.callback.RenderCallback;
@@ -54,29 +47,15 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	private static final String SUPPORT_URL = "https://ko-fi.com/jakevollkommer";
 
 	// Draw suppression happens through RenderCallback: static scenery is filtered when
-	// the scene uploads, and animated objects (the guardian statues) are filtered every
-	// frame, so nothing is ever removed from the scene, everything stays hoverable,
-	// clickable, and visible to other plugins.
+	// the scene uploads, and animated objects are filtered every frame, so nothing is
+	// ever removed from the scene, everything stays hoverable, clickable, and visible
+	// to other plugins.
 	//
-	// All fields below are written on the client thread and volatile because drawObject
-	// is also called from the maploader thread during scene upload.
-	private volatile Set<Integer> hiddenObjectIds = Set.of();
-	private volatile Set<Integer> hiddenNpcIds = Set.of();
-	private volatile Set<Integer> hiddenWidgetComponents = Set.of();
-	private volatile Set<Integer> heldTalismanStatues = Set.of();
-	private volatile boolean hideInactiveStatues;
-	private volatile boolean hideProjectiles;
-	private volatile boolean hideOtherPlayers;
-	private volatile boolean hideOtherPlayers2d;
-	private volatile boolean hideOtherPlayersPets;
-	private volatile boolean showFriends;
-	private volatile boolean hideAltarScenery;
-	private volatile boolean hideArenaGenericScenery;
-	private volatile boolean sceneIsGotr;
-	private volatile boolean sceneHasAltar;
-	private volatile Set<Integer> currentAltarHiddenNpcIds = Set.of();
-	private volatile int activeElementalStatue = -1;
-	private volatile int activeCatalyticStatue = -1;
+	// The plugin itself knows nothing about any specific activity: each supported one
+	// is a ContentArea that owns its regions, IDs, and rules. A plain array because
+	// addEntity and drawObject run every frame (and drawObject on the maploader thread
+	// during scene upload, hence volatile).
+	private volatile ContentArea[] contentAreas = new ContentArea[0];
 
 	@Inject
 	private Client client;
@@ -99,12 +78,19 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	@Override
 	protected void startUp()
 	{
+		contentAreas = new ContentArea[]
+		{
+			new GotrContent(client, config),
+			new AltarContent(config),
+		};
 		renderCallbackManager.register(this);
 		clientThread.invokeLater(() ->
 		{
-			rebuildHiddenSets();
-			refreshHeldTalismans();
-			refreshSceneFlags();
+			for (ContentArea area : contentAreas)
+			{
+				area.rebuildFromConfig();
+			}
+			refreshSceneState();
 			reloadSceneIfLoggedIn();
 		});
 	}
@@ -115,14 +101,11 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		renderCallbackManager.unregister(this);
 		clientThread.invokeLater(() ->
 		{
-			Set<Integer> widgetsToRestore = hiddenWidgetComponents;
-			hiddenObjectIds = Set.of();
-			hiddenNpcIds = Set.of();
-			hiddenWidgetComponents = Set.of();
-			hideInactiveStatues = false;
-			hideAltarScenery = false;
-			hideArenaGenericScenery = false;
-
+			Set<Integer> widgetsToRestore = allHiddenWidgets();
+			for (ContentArea area : contentAreas)
+			{
+				area.reset();
+			}
 			widgetsToRestore.forEach(component -> setWidgetHidden(component, false));
 			reloadSceneIfLoggedIn();
 		});
@@ -135,17 +118,39 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	{
 		if (renderable instanceof NPC)
 		{
-			return !isHiddenNpc((NPC) renderable);
+			NPC npc = (NPC) renderable;
+			for (ContentArea area : contentAreas)
+			{
+				if (area.hidesNpc(npc))
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 
 		if (renderable instanceof Player)
 		{
-			return !isHiddenPlayer((Player) renderable, drawingUi);
+			Player player = (Player) renderable;
+			for (ContentArea area : contentAreas)
+			{
+				if (area.hidesPlayer(player, drawingUi))
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 
 		if (renderable instanceof Projectile)
 		{
-			return !(hideProjectiles && isAtGotrContent());
+			for (ContentArea area : contentAreas)
+			{
+				if (area.hidesProjectiles())
+				{
+					return false;
+				}
+			}
 		}
 
 		return true;
@@ -155,91 +160,14 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	public boolean drawObject(Scene scene, TileObject object)
 	{
 		int objectId = object.getId();
-		// object IDs are reused across the game, so GOTR rules only apply when the
-		// loaded scene actually contains the arena
-		if (GotrArena.isInScene(scene))
+		for (ContentArea area : contentAreas)
 		{
-			if (hiddenObjectIds.contains(objectId))
-			{
-				return false;
-			}
-
-			if (GuardianStatues.STATUE_OBJECTS.contains(objectId))
-			{
-				// animated objects pass through here every frame, so statue visibility
-				// follows rotations and inventory instantly
-				return !isHiddenStatue(objectId);
-			}
-
-			if (isHiddenArenaGenericScenery(objectId))
+			if (area.hidesObject(scene, objectId))
 			{
 				return false;
 			}
 		}
-
-		return !isHiddenAltarScenery(scene, objectId);
-	}
-
-	private boolean isHiddenNpc(NPC npc)
-	{
-		// NPC IDs are reused across the game too, so GOTR NPC rules stay scene-scoped
-		if (sceneIsGotr && hiddenNpcIds.contains(npc.getId()))
-		{
-			return true;
-		}
-
-		if (hideOtherPlayersPets && isAtGotrContent() && isSomeoneElsesPet(npc))
-		{
-			return true;
-		}
-
-		return hideAltarScenery && currentAltarHiddenNpcIds.contains(npc.getId());
-	}
-
-	private boolean isSomeoneElsesPet(NPC npc)
-	{
-		return npc.getComposition().isFollower() && npc != client.getFollower();
-	}
-
-	private boolean isHiddenPlayer(Player player, boolean drawingUi)
-	{
-		boolean isOtherPlayerAtGotr = isAtGotrContent() && player != client.getLocalPlayer();
-		if (!isOtherPlayerAtGotr)
-		{
-			return false;
-		}
-
-		if (showFriends && player.isFriend())
-		{
-			return false;
-		}
-
-		return drawingUi ? hideOtherPlayers2d : hideOtherPlayers;
-	}
-
-	private boolean isHiddenStatue(int statueObjectId)
-	{
-		return hideInactiveStatues
-			&& statueObjectId != activeElementalStatue
-			&& statueObjectId != activeCatalyticStatue
-			&& !heldTalismanStatues.contains(statueObjectId);
-	}
-
-	/**
-	 * Altar decoration uses generic world IDs, so it is only hidden when the loaded
-	 * scene spans altar regions. The gate reads the Scene parameter, correct even
-	 * during scene upload, never per-object world coordinates.
-	 */
-	private boolean isHiddenAltarScenery(Scene scene, int objectId)
-	{
-		return hideAltarScenery && Altars.isAltarSceneryInScene(scene, objectId);
-	}
-
-	// only called from inside drawObject's arena-scene gate, so no region check here
-	private boolean isHiddenArenaGenericScenery(int objectId)
-	{
-		return hideArenaGenericScenery
-			&& GotrArena.ARENA_GENERIC_SCENERY_OBJECTS.contains(objectId);
+		return true;
 	}
 
 	// --- game state tracking ---
@@ -247,50 +175,19 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	@Subscribe
 	public void onScriptPreFired(ScriptPreFired event)
 	{
-		if (event.getScriptId() != GotrHud.UPDATE_SCRIPT)
+		for (ContentArea area : contentAreas)
 		{
-			return;
+			area.onScriptPreFired(event);
 		}
-
-		Object[] arguments = event.getScriptEvent().getArguments();
-		if (arguments == null || arguments.length <= GotrHud.ARG_ACTIVE_CATALYTIC)
-		{
-			return;
-		}
-
-		int elementalIndex = asInt(arguments[GotrHud.ARG_ACTIVE_ELEMENTAL]);
-		int catalyticIndex = asInt(arguments[GotrHud.ARG_ACTIVE_CATALYTIC]);
-		activeElementalStatue = GuardianStatues.STATUE_BY_ELEMENTAL_INDEX.getOrDefault(elementalIndex, -1);
-		activeCatalyticStatue = GuardianStatues.STATUE_BY_CATALYTIC_INDEX.getOrDefault(catalyticIndex, -1);
 	}
 
 	@Subscribe
 	public void onItemContainerChanged(ItemContainerChanged event)
 	{
-		if (event.getContainerId() == InventoryID.INV)
+		for (ContentArea area : contentAreas)
 		{
-			refreshHeldTalismans();
+			area.onItemContainerChanged(event);
 		}
-	}
-
-	private void refreshHeldTalismans()
-	{
-		ItemContainer inventory = client.getItemContainer(InventoryID.INV);
-		if (inventory == null)
-		{
-			heldTalismanStatues = Set.of();
-			return;
-		}
-
-		Set<Integer> held = new HashSet<>();
-		GuardianStatues.TALISMAN_BY_STATUE.forEach((statueId, talismanId) ->
-		{
-			if (inventory.contains(talismanId))
-			{
-				held.add(statueId);
-			}
-		});
-		heldTalismanStatues = Set.copyOf(held);
 	}
 
 	@Subscribe
@@ -298,33 +195,24 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	{
 		if (event.getGameState() == GameState.LOGGED_IN)
 		{
-			clientThread.invokeLater(this::refreshSceneFlags);
+			clientThread.invokeLater(this::refreshSceneState);
 		}
 	}
 
-	private void refreshSceneFlags()
+	private void refreshSceneState()
 	{
 		WorldView worldView = client.getTopLevelWorldView();
 		if (worldView == null)
 		{
-			sceneIsGotr = false;
-			sceneHasAltar = false;
-			currentAltarHiddenNpcIds = Set.of();
 			return;
 		}
 
 		Scene scene = worldView.getScene();
-		sceneIsGotr = GotrArena.isInScene(scene);
-		sceneHasAltar = Altars.hasAltarInScene(scene);
-		currentAltarHiddenNpcIds = Altars.hiddenNpcsForScene(scene);
+		for (ContentArea area : contentAreas)
+		{
+			area.onSceneLoaded(scene);
+		}
 		warnIfSceneryHidingUnavailable(scene);
-
-	}
-
-	/** Entity hiding applies at GOTR and inside the runecrafting altars reached from it. */
-	private boolean isAtGotrContent()
-	{
-		return sceneIsGotr || sceneHasAltar;
 	}
 
 	private boolean warnedAboutSoftwareRenderer;
@@ -336,16 +224,27 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	 */
 	private void warnIfSceneryHidingUnavailable(Scene scene)
 	{
-		boolean sceneHasHideableContent = sceneIsGotr || Altars.hasAltarInScene(scene);
-		boolean sceneryHidingWanted = !hiddenObjectIds.isEmpty() || hideAltarScenery;
-		boolean rendererSupportsHiding = client.getDrawCallbacks() != null;
-		if (warnedAboutSoftwareRenderer || !sceneHasHideableContent || !sceneryHidingWanted || rendererSupportsHiding)
+		if (warnedAboutSoftwareRenderer || client.getDrawCallbacks() != null)
+		{
+			return;
+		}
+
+		boolean hidingWantedHere = false;
+		for (ContentArea area : contentAreas)
+		{
+			if (area.isInScene(scene) && area.hidesAnyScenery())
+			{
+				hidingWantedHere = true;
+				break;
+			}
+		}
+		if (!hidingWantedHere)
 		{
 			return;
 		}
 
 		warnedAboutSoftwareRenderer = true;
-		client.addChatMessage(net.runelite.api.ChatMessageType.GAMEMESSAGE, "",
+		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
 			"<col=e00a19>Minimalist:</col> hiding scenery requires a GPU renderer - enable the GPU plugin (or 117HD).",
 			null);
 	}
@@ -357,7 +256,10 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	{
 		// interfaces are rebuilt by clientscripts whenever their values update, which
 		// resets the hidden flag, so re-hide every client tick
-		hiddenWidgetComponents.forEach(component -> setWidgetHidden(component, true));
+		for (ContentArea area : contentAreas)
+		{
+			area.hiddenWidgetComponents().forEach(component -> setWidgetHidden(component, true));
+		}
 	}
 
 	private void setWidgetHidden(int componentId, boolean hidden)
@@ -372,64 +274,53 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		widget.setHidden(hidden);
 	}
 
+	private Set<Integer> allHiddenWidgets()
+	{
+		Set<Integer> widgets = new HashSet<>();
+		for (ContentArea area : contentAreas)
+		{
+			widgets.addAll(area.hiddenWidgetComponents());
+		}
+		return widgets;
+	}
+
 	// --- menus ---
 
-	/**
-	 * Visually hidden statues stay clickable (they are still in the scene), so their
-	 * menu entries are stripped to prevent misclicks. Active and talisman-held statues
-	 * keep their menus, matching their visibility.
-	 */
 	@Subscribe
 	public void onPostMenuSort(PostMenuSort event)
 	{
-		if (!hideInactiveStatues || !sceneIsGotr)
-		{
-			return;
-		}
-
 		MenuEntry[] entries = client.getMenuEntries();
 		// cheap scan first: PostMenuSort runs every frame, so only allocate when needed
-		boolean hasHiddenStatueEntry = false;
+		boolean hasHiddenEntry = false;
 		for (MenuEntry entry : entries)
 		{
-			if (isHiddenStatueEntry(entry))
+			if (isHiddenMenuEntry(entry))
 			{
-				hasHiddenStatueEntry = true;
+				hasHiddenEntry = true;
 				break;
 			}
 		}
 
-		if (!hasHiddenStatueEntry)
+		if (!hasHiddenEntry)
 		{
 			return;
 		}
 
 		client.setMenuEntries(Arrays.stream(entries)
-			.filter(entry -> !isHiddenStatueEntry(entry))
+			.filter(entry -> !isHiddenMenuEntry(entry))
 			.toArray(MenuEntry[]::new));
 	}
 
-	private boolean isHiddenStatueEntry(MenuEntry entry)
+	private boolean isHiddenMenuEntry(MenuEntry entry)
 	{
-		return GuardianStatues.STATUE_OBJECTS.contains(entry.getIdentifier())
-			&& isObjectAction(entry.getType())
-			&& isHiddenStatue(entry.getIdentifier());
-	}
-
-	private static boolean isObjectAction(MenuAction action)
-	{
-		switch (action)
+		for (ContentArea area : contentAreas)
 		{
-			case GAME_OBJECT_FIRST_OPTION:
-			case GAME_OBJECT_SECOND_OPTION:
-			case GAME_OBJECT_THIRD_OPTION:
-			case GAME_OBJECT_FOURTH_OPTION:
-			case GAME_OBJECT_FIFTH_OPTION:
-			case EXAMINE_OBJECT:
+			if (area.hidesMenuEntry(entry))
+			{
 				return true;
-			default:
-				return false;
+			}
 		}
+		return false;
 	}
 
 	// --- config ---
@@ -470,26 +361,21 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 
 	private void applyConfigChange()
 	{
-		Set<Integer> previousObjectIds = hiddenObjectIds;
-		Set<Integer> previousWidgets = hiddenWidgetComponents;
-		boolean previousAltarScenery = hideAltarScenery;
-		boolean previousArenaGenerics = hideArenaGenericScenery;
-		rebuildHiddenSets();
+		Set<Integer> previousWidgets = allHiddenWidgets();
 
-		previousWidgets.stream()
-			.filter(component -> !hiddenWidgetComponents.contains(component))
-			.forEach(component -> setWidgetHidden(component, false));
-
-		if (client.getGameState() != GameState.LOGGED_IN)
+		boolean staticSceneryChanged = false;
+		for (ContentArea area : contentAreas)
 		{
-			return;
+			staticSceneryChanged |= area.rebuildFromConfig();
 		}
 
+		Set<Integer> currentWidgets = allHiddenWidgets();
+		previousWidgets.stream()
+			.filter(component -> !currentWidgets.contains(component))
+			.forEach(component -> setWidgetHidden(component, false));
+
 		// static scenery filtering is applied when the scene uploads, so changes to it
-		// take one reload; statue, NPC, projectile, and widget changes apply live
-		boolean staticSceneryChanged = !previousObjectIds.equals(hiddenObjectIds)
-			|| previousAltarScenery != hideAltarScenery
-			|| previousArenaGenerics != hideArenaGenericScenery;
+		// take one reload; NPC, player, projectile, and widget changes apply live
 		if (staticSceneryChanged)
 		{
 			reloadSceneIfLoggedIn();
@@ -502,55 +388,5 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		{
 			client.setGameState(GameState.LOADING);
 		}
-	}
-
-	private void rebuildHiddenSets()
-	{
-		hideInactiveStatues = config.gotrGuardianStatues();
-		hideProjectiles = config.gotrProjectiles();
-		hideOtherPlayers = config.gotrOtherPlayers();
-		hideOtherPlayers2d = config.gotrOtherPlayers2d();
-		hideOtherPlayersPets = config.gotrOtherPlayersPets();
-		showFriends = config.gotrShowFriends();
-		hideAltarScenery = config.gotrAltarScenery();
-		hideArenaGenericScenery = config.gotrAbyssScenery();
-
-		hiddenObjectIds = union(
-			toggled(config.gotrAbyssScenery(), GotrArena.ABYSS_SCENERY_OBJECTS),
-			toggled(config.gotrGuardianRemains(), GotrArena.GUARDIAN_REMAINS_OBJECTS),
-			toggled(config.gotrEssencePiles(), GotrArena.ESSENCE_PILE_OBJECTS),
-			toggled(config.gotrBarriersAndCells(), GotrArena.BARRIER_AND_CELL_OBJECTS),
-			toggled(config.gotrEntranceScenery(), GotrArena.ENTRANCE_SCENERY_OBJECTS),
-			toggled(config.gotrRain(), GotrArena.RAIN_OBJECTS));
-
-		hiddenNpcIds = union(
-			toggled(config.gotrAbyssalCreatures(), GotrNpcs.ABYSSAL_CREATURES),
-			toggled(config.gotrSummonedGuardians(), GotrNpcs.SUMMONED_GUARDIANS),
-			toggled(config.gotrApprentices(), GotrNpcs.APPRENTICES),
-			toggled(config.gotrRick(), GotrNpcs.RICK),
-			toggled(config.gotrBarrierHitsplats(), GotrNpcs.BARRIER_HITPOINT_HOLDERS));
-
-		hiddenWidgetComponents = union(
-			toggled(config.gotrHudPortalTimer(), Set.of(GotrHud.PORTAL_TIMER_COMPONENT)),
-			toggled(config.gotrHudGuardianCounter(), Set.of(GotrHud.GUARDIAN_COUNTER_COMPONENT)),
-			toggled(config.gotrHudPortalLocation(), Set.of(GotrHud.PORTAL_LOCATION_COMPONENT)));
-	}
-
-	private static Set<Integer> toggled(boolean enabled, Set<Integer> curatedIds)
-	{
-		return enabled ? curatedIds : Set.of();
-	}
-
-	@SafeVarargs
-	private static Set<Integer> union(Set<Integer>... sets)
-	{
-		return Stream.of(sets)
-			.flatMap(Set::stream)
-			.collect(Collectors.toUnmodifiableSet());
-	}
-
-	private static int asInt(Object argument)
-	{
-		return argument instanceof Integer ? (Integer) argument : Integer.parseInt(argument.toString());
 	}
 }
