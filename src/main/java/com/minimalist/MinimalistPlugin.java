@@ -156,9 +156,8 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	{
 		int objectId = object.getId();
 		// object IDs are reused across the game, so GOTR rules only apply when the
-		// loaded scene actually contains the arena (this must read the passed scene,
-		// not client state, because statics are filtered mid-upload)
-		if (sceneContainsRegion(scene, GotrArena.ARENA_REGION))
+		// loaded scene actually contains the arena
+		if (GotrArena.isInScene(scene))
 		{
 			if (hiddenObjectIds.contains(objectId))
 			{
@@ -172,7 +171,7 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 				return !isHiddenStatue(objectId);
 			}
 
-			if (isHiddenArenaGenericScenery(scene, objectId))
+			if (isHiddenArenaGenericScenery(objectId))
 			{
 				return false;
 			}
@@ -236,23 +235,11 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		return hideAltarScenery && Altars.isAltarSceneryInScene(scene, objectId);
 	}
 
-	private boolean isHiddenArenaGenericScenery(Scene scene, int objectId)
+	// only called from inside drawObject's arena-scene gate, so no region check here
+	private boolean isHiddenArenaGenericScenery(int objectId)
 	{
 		return hideArenaGenericScenery
-			&& GotrArena.ARENA_GENERIC_SCENERY_OBJECTS.contains(objectId)
-			&& sceneContainsRegion(scene, GotrArena.ARENA_REGION);
-	}
-
-	private static boolean sceneContainsRegion(Scene scene, int regionId)
-	{
-		int[] sceneRegions = scene.getMapRegions();
-		if (sceneRegions == null)
-		{
-			// no scene is loaded yet (login screen)
-			return false;
-		}
-
-		return Arrays.stream(sceneRegions).anyMatch(sceneRegion -> sceneRegion == regionId);
+			&& GotrArena.ARENA_GENERIC_SCENERY_OBJECTS.contains(objectId);
 	}
 
 	// --- game state tracking ---
@@ -327,7 +314,7 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		}
 
 		Scene scene = worldView.getScene();
-		sceneIsGotr = sceneContainsRegion(scene, GotrArena.ARENA_REGION);
+		sceneIsGotr = GotrArena.isInScene(scene);
 		sceneHasAltar = Altars.hasAltarInScene(scene);
 		currentAltarHiddenNpcIds = Altars.hiddenNpcsForScene(scene);
 		warnIfSceneryHidingUnavailable(scene);
