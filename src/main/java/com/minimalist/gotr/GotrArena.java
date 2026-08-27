@@ -3,6 +3,7 @@
 package com.minimalist.gotr;
 
 import java.util.Set;
+import net.runelite.api.Scene;
 
 /**
  * Curated scenery IDs for the Guardians of the Rift arena, temple, and mines.
@@ -13,6 +14,30 @@ public final class GotrArena
 {
 	/** The map region of the GOTR arena and temple. */
 	public static final int ARENA_REGION = 14484;
+
+	/**
+	 * True when the loaded scene spans the GOTR arena. Reads the passed Scene, never
+	 * client state, so it is correct even while statics are filtered mid-upload.
+	 */
+	public static boolean isInScene(Scene scene)
+	{
+		int[] sceneRegions = scene.getMapRegions();
+		if (sceneRegions == null)
+		{
+			// no scene is loaded yet (login screen)
+			return false;
+		}
+
+		for (int regionId : sceneRegions)
+		{
+			if (regionId == ARENA_REGION)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	/**
 	 * The abyss backdrop around the arena: Whale-fall, Elk kelp, Dark lace, statues,
