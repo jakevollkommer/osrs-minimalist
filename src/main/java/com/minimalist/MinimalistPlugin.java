@@ -117,9 +117,17 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 
 	// --- RenderCallback: the single place visibility is decided ---
 
+	// TEMPORARY dev diagnostic, removed before merge: log each distinct renderable type
+	// once so we learn how ground items reach addEntity.
+	private final Set<String> seenRenderableTypes = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
 	@Override
 	public boolean addEntity(Renderable renderable, boolean drawingUi)
 	{
+		if (seenRenderableTypes.add(renderable.getClass().getName()))
+		{
+			System.out.println("MINIREND " + renderable.getClass().getName());
+		}
 		if (renderable instanceof NPC)
 		{
 			NPC npc = (NPC) renderable;
@@ -367,6 +375,26 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 			String name = client.getObjectDefinition(id).getName();
 			System.out.println("MINIDUMP id=" + id + " count=" + count + " name=" + name);
 		});
+		java.util.Map<Integer, Integer> itemCounts = new java.util.TreeMap<>();
+		for (Tile[][] plane : scene.getTiles())
+		{
+			for (Tile[] column : plane)
+			{
+				for (Tile tile : column)
+				{
+					if (tile == null || tile.getGroundItems() == null)
+					{
+						continue;
+					}
+					for (net.runelite.api.TileItem groundItem : tile.getGroundItems())
+					{
+						itemCounts.merge(groundItem.getId(), 1, Integer::sum);
+					}
+				}
+			}
+		}
+		itemCounts.forEach((id, count) ->
+			System.out.println("MINIDUMP-ITEM id=" + id + " count=" + count + " name=" + client.getItemDefinition(id).getName()));
 		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Minimalist: dumped " + counts.size() + " object ids to the log.", null);
 	}
 
