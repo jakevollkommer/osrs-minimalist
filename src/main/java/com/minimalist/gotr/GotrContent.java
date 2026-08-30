@@ -3,16 +3,15 @@
 package com.minimalist.gotr;
 
 import com.minimalist.ContentArea;
+import com.minimalist.IdSets;
 import com.minimalist.MinimalistConfig;
+import com.minimalist.ObjectActions;
 import com.minimalist.PlayerHiding;
 import com.minimalist.altars.Altars;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import net.runelite.api.Client;
 import net.runelite.api.ItemContainer;
-import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
@@ -74,25 +73,25 @@ public class GotrContent implements ContentArea
 			config.gotrOtherPlayersPets(),
 			config.gotrShowFriends());
 
-		hiddenObjectIds = union(
-			toggled(config.gotrAbyssScenery(), GotrArena.ABYSS_SCENERY_OBJECTS),
-			toggled(config.gotrGuardianRemains(), GotrArena.GUARDIAN_REMAINS_OBJECTS),
-			toggled(config.gotrEssencePiles(), GotrArena.ESSENCE_PILE_OBJECTS),
-			toggled(config.gotrBarriersAndCells(), GotrArena.BARRIER_AND_CELL_OBJECTS),
-			toggled(config.gotrEntranceScenery(), GotrArena.ENTRANCE_SCENERY_OBJECTS),
-			toggled(config.gotrRain(), GotrArena.RAIN_OBJECTS));
+		hiddenObjectIds = IdSets.union(
+			IdSets.toggled(config.gotrAbyssScenery(), GotrArena.ABYSS_SCENERY_OBJECTS),
+			IdSets.toggled(config.gotrGuardianRemains(), GotrArena.GUARDIAN_REMAINS_OBJECTS),
+			IdSets.toggled(config.gotrEssencePiles(), GotrArena.ESSENCE_PILE_OBJECTS),
+			IdSets.toggled(config.gotrBarriersAndCells(), GotrArena.BARRIER_AND_CELL_OBJECTS),
+			IdSets.toggled(config.gotrEntranceScenery(), GotrArena.ENTRANCE_SCENERY_OBJECTS),
+			IdSets.toggled(config.gotrRain(), GotrArena.RAIN_OBJECTS));
 
-		hiddenNpcIds = union(
-			toggled(config.gotrAbyssalCreatures(), GotrNpcs.ABYSSAL_CREATURES),
-			toggled(config.gotrSummonedGuardians(), GotrNpcs.SUMMONED_GUARDIANS),
-			toggled(config.gotrApprentices(), GotrNpcs.APPRENTICES),
-			toggled(config.gotrRick(), GotrNpcs.RICK),
-			toggled(config.gotrBarrierHitsplats(), GotrNpcs.BARRIER_HITPOINT_HOLDERS));
+		hiddenNpcIds = IdSets.union(
+			IdSets.toggled(config.gotrAbyssalCreatures(), GotrNpcs.ABYSSAL_CREATURES),
+			IdSets.toggled(config.gotrSummonedGuardians(), GotrNpcs.SUMMONED_GUARDIANS),
+			IdSets.toggled(config.gotrApprentices(), GotrNpcs.APPRENTICES),
+			IdSets.toggled(config.gotrRick(), GotrNpcs.RICK),
+			IdSets.toggled(config.gotrBarrierHitsplats(), GotrNpcs.BARRIER_HITPOINT_HOLDERS));
 
-		hiddenWidgets = union(
-			toggled(config.gotrHudPortalTimer(), Set.of(GotrHud.PORTAL_TIMER_COMPONENT)),
-			toggled(config.gotrHudGuardianCounter(), Set.of(GotrHud.GUARDIAN_COUNTER_COMPONENT)),
-			toggled(config.gotrHudPortalLocation(), Set.of(GotrHud.PORTAL_LOCATION_COMPONENT)));
+		hiddenWidgets = IdSets.union(
+			IdSets.toggled(config.gotrHudPortalTimer(), Set.of(GotrHud.PORTAL_TIMER_COMPONENT)),
+			IdSets.toggled(config.gotrHudGuardianCounter(), Set.of(GotrHud.GUARDIAN_COUNTER_COMPONENT)),
+			IdSets.toggled(config.gotrHudPortalLocation(), Set.of(GotrHud.PORTAL_LOCATION_COMPONENT)));
 
 		return !previousObjectIds.equals(hiddenObjectIds)
 			|| previousArenaGenerics != hideArenaGenericScenery;
@@ -189,7 +188,7 @@ public class GotrContent implements ContentArea
 		return hideInactiveStatues
 			&& sceneIsGotr
 			&& GuardianStatues.STATUE_OBJECTS.contains(entry.getIdentifier())
-			&& isObjectAction(entry.getType())
+			&& ObjectActions.isObjectAction(entry.getType())
 			&& isHiddenStatue(entry.getIdentifier());
 	}
 
@@ -254,35 +253,6 @@ public class GotrContent implements ContentArea
 			}
 		});
 		heldTalismanStatues = Set.copyOf(held);
-	}
-
-	private static boolean isObjectAction(MenuAction action)
-	{
-		switch (action)
-		{
-			case GAME_OBJECT_FIRST_OPTION:
-			case GAME_OBJECT_SECOND_OPTION:
-			case GAME_OBJECT_THIRD_OPTION:
-			case GAME_OBJECT_FOURTH_OPTION:
-			case GAME_OBJECT_FIFTH_OPTION:
-			case EXAMINE_OBJECT:
-				return true;
-			default:
-				return false;
-		}
-	}
-
-	private static Set<Integer> toggled(boolean enabled, Set<Integer> curatedIds)
-	{
-		return enabled ? curatedIds : Set.of();
-	}
-
-	@SafeVarargs
-	private static Set<Integer> union(Set<Integer>... sets)
-	{
-		return Stream.of(sets)
-			.flatMap(Set::stream)
-			.collect(Collectors.toUnmodifiableSet());
 	}
 
 	private static int asInt(Object argument)

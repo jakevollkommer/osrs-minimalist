@@ -154,25 +154,73 @@ public interface MinimalistConfig extends Config
 	)
 	String blastFurnaceSection = "blastFurnaceSection";
 
-	@ConfigItem(keyName = "blastFurnaceOtherPlayers", name = "Hide other players", description = "Hide other players while at the Blast Furnace", section = blastFurnaceSection, position = 0)
+	@ConfigItem(keyName = "blastFurnaceOperatorDwarves", name = "Hide operator dwarves", description = "Dumpy, Stumpy, Pumpy, Numpty, and Thumpy working the machinery", section = blastFurnaceSection, position = 0)
+	default boolean blastFurnaceOperatorDwarves()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceMerchants", name = "Hide merchants", description = "Ordan and Jorzik; they stay clickable where they stand while hidden", section = blastFurnaceSection, position = 1)
+	default boolean blastFurnaceMerchants()
+	{
+		return false;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceDeliveryMiners", name = "Hide delivery miners", description = "The Dwarven Miners restocking Ordan's shop; keep visible to watch for gold ore deliveries", section = blastFurnaceSection, position = 2)
+	default boolean blastFurnaceDeliveryMiners()
+	{
+		return false;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceMachinery", name = "Hide machinery", description = "Cogs, pipes, gear box, and drive belt; broken machinery always shows so repairs are never missed", section = blastFurnaceSection, position = 3)
+	default boolean blastFurnaceMachinery()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceSmoke", name = "Hide smoke", description = "Smoke from the furnace machinery", section = blastFurnaceSection, position = 4)
+	default boolean blastFurnaceSmoke()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceManualEquipment", name = "Hide manual equipment", description = "Pedals, pump, stove, and coke; needed on non-official worlds and used for niche Strength, Agility, and Firemaking training", section = blastFurnaceSection, position = 5)
+	default boolean blastFurnaceManualEquipment()
+	{
+		return false;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceCoffer", name = "Hide coffer", description = "Only official worlds need the coffer; hide it if you run the furnace manually", section = blastFurnaceSection, position = 6)
+	default boolean blastFurnaceCoffer()
+	{
+		return false;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceSink", name = "Hide sink", description = "The Fill-bucket sink, unnecessary with ice or smiths gloves", section = blastFurnaceSection, position = 7)
+	default boolean blastFurnaceSink()
+	{
+		return false;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceOtherPlayers", name = "Hide other players", description = "Hide other players while at the Blast Furnace", section = blastFurnaceSection, position = 8)
 	default boolean blastFurnaceOtherPlayers()
 	{
 		return false;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceShowFriends", name = "Show friends", description = "Keep friends visible when hiding other players", section = blastFurnaceSection, position = 1)
+	@ConfigItem(keyName = "blastFurnaceShowFriends", name = "Show friends", description = "Keep friends visible when hiding other players", section = blastFurnaceSection, position = 9)
 	default boolean blastFurnaceShowFriends()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceOtherPlayers2d", name = "Hide other players 2D", description = "Hide other players' overhead text, hitsplats, and health bars while at the Blast Furnace", section = blastFurnaceSection, position = 2)
+	@ConfigItem(keyName = "blastFurnaceOtherPlayers2d", name = "Hide other players 2D", description = "Hide other players' overhead text, hitsplats, and health bars while at the Blast Furnace", section = blastFurnaceSection, position = 10)
 	default boolean blastFurnaceOtherPlayers2d()
 	{
 		return false;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceOtherPlayersPets", name = "Hide other players' pets", description = "Hide pets that are not yours while at the Blast Furnace", section = blastFurnaceSection, position = 3)
+	@ConfigItem(keyName = "blastFurnaceOtherPlayersPets", name = "Hide other players' pets", description = "Hide pets that are not yours while at the Blast Furnace", section = blastFurnaceSection, position = 11)
 	default boolean blastFurnaceOtherPlayersPets()
 	{
 		return false;
