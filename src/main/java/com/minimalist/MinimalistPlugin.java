@@ -124,6 +124,7 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	// TEMPORARY dev diagnostic, removed before merge: log each distinct renderable type
 	// once so we learn how ground items reach addEntity.
 	private final Set<String> seenRenderableTypes = java.util.concurrent.ConcurrentHashMap.newKeySet();
+	private final java.util.Map<String, String> drawObjectWatch = new java.util.concurrent.ConcurrentHashMap<>();
 
 	@Override
 	public boolean addEntity(Renderable renderable, boolean drawingUi)
@@ -172,9 +173,16 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	@Override
 	public boolean drawObject(Scene scene, TileObject object)
 	{
-		if (seenRenderableTypes.add("drawObject:" + object.getClass().getName()))
+		// TEMPORARY dev instrumentation, removed before merge: record what the renderer
+		// asks about ids in the Blast Furnace band and what we answered.
+		if (object.getId() >= 6150 && object.getId() <= 29330)
 		{
-			// TEMPORARY dev instrumentation, removed before merge
+			boolean hidden = false;
+			for (ContentArea area : contentAreas)
+			{
+				hidden |= area.hidesObject(scene, object.getId());
+			}
+			drawObjectWatch.put(object.getId() + ":" + object.getClass().getSimpleName(), "hidden=" + hidden);
 		}
 
 		if (object instanceof ItemLayer)
@@ -383,7 +391,7 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		}
 
 		Scene scene = client.getTopLevelWorldView().getScene();
-		java.util.Map<Integer, Integer> counts = new java.util.TreeMap<>();
+		java.util.Map<String, Integer> counts = new java.util.TreeMap<>();
 		for (Tile[][] plane : scene.getTiles())
 		{
 			for (Tile[] column : plane)
@@ -394,22 +402,26 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 					{
 						continue;
 					}
-					recordObject(counts, tile.getWallObject());
-					recordObject(counts, tile.getDecorativeObject());
-					recordObject(counts, tile.getGroundObject());
+					recordTyped(counts, tile.getWallObject(), "wall");
+					recordTyped(counts, tile.getDecorativeObject(), "decor");
+					recordTyped(counts, tile.getGroundObject(), "ground");
 					if (tile.getGameObjects() != null)
 					{
 						for (TileObject gameObject : tile.getGameObjects())
 						{
-							recordObject(counts, gameObject);
+							recordTyped(counts, gameObject, "game");
 						}
 					}
 				}
 			}
 		}
 		java.util.List<String> lines = new java.util.ArrayList<>();
-		counts.forEach((id, count) ->
-			lines.add("MINIDUMP id=" + id + " count=" + count + " name=" + client.getObjectDefinition(id).getName()));
+		counts.forEach((key, count) ->
+		{
+			int id = Integer.parseInt(key.split(":")[0]);
+			lines.add("MINIDUMP id=" + key + " count=" + count + " name=" + client.getObjectDefinition(id).getName());
+		});
+		drawObjectWatch.forEach((key, verdict) -> lines.add("MINIWATCH " + key + " " + verdict));
 		java.util.Map<Integer, Integer> itemCounts = new java.util.TreeMap<>();
 		for (Tile[][] plane : scene.getTiles())
 		{
@@ -442,11 +454,11 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Minimalist: dumped " + counts.size() + " object ids to .runelite/minidump.txt", null);
 	}
 
-	private static void recordObject(java.util.Map<Integer, Integer> counts, TileObject object)
+	private static void recordTyped(java.util.Map<String, Integer> counts, TileObject object, String kind)
 	{
 		if (object != null)
 		{
-			counts.merge(object.getId(), 1, Integer::sum);
+			counts.merge(object.getId() + ":" + kind + ":" + object.getClass().getSimpleName(), 1, Integer::sum);
 		}
 	}
 
