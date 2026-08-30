@@ -4,6 +4,7 @@ package com.minimalist;
 
 import com.google.inject.Provides;
 import com.minimalist.altars.AltarContent;
+import com.minimalist.blastfurnace.BlastFurnaceContent;
 import com.minimalist.gotr.GotrContent;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -39,7 +40,7 @@ import net.runelite.client.util.LinkBrowser;
 @PluginDescriptor(
 	name = "Minimalist",
 	description = "Hide non-interactable scenery objects, NPCs, and HUD elements at supported content",
-	tags = {"jake", "hide", "hider", "scenery", "object", "objects", "npc", "entity", "declutter", "clean", "minimal", "gotr", "guardians", "rift", "runecrafting", "runecraft", "altar", "altars", "minigame", "hud"}
+	tags = {"jake", "hide", "hider", "scenery", "object", "objects", "npc", "entity", "declutter", "clean", "minimal", "gotr", "guardians", "rift", "runecrafting", "runecraft", "altar", "altars", "minigame", "hud", "blast", "furnace", "smithing"}
 )
 public class MinimalistPlugin extends Plugin implements RenderCallback
 {
@@ -82,6 +83,7 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		{
 			new GotrContent(client, config),
 			new AltarContent(config),
+			new BlastFurnaceContent(client, config),
 		};
 		renderCallbackManager.register(this);
 		clientThread.invokeLater(() ->

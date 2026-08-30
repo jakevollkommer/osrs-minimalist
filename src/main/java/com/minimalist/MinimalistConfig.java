@@ -148,9 +148,40 @@ public interface MinimalistConfig extends Config
 	}
 
 	@ConfigSection(
-		name = "Feedback",
-		description = "Minimalist covers Guardians of the Rift for now, with more content planned, suggestions welcome",
+		name = "Blast Furnace",
+		description = "Hide distractions at the Blast Furnace",
 		position = 1
+	)
+	String blastFurnaceSection = "blastFurnaceSection";
+
+	@ConfigItem(keyName = "blastFurnaceOtherPlayers", name = "Hide other players", description = "Hide other players while at the Blast Furnace", section = blastFurnaceSection, position = 0)
+	default boolean blastFurnaceOtherPlayers()
+	{
+		return false;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceShowFriends", name = "Show friends", description = "Keep friends visible when hiding other players", section = blastFurnaceSection, position = 1)
+	default boolean blastFurnaceShowFriends()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceOtherPlayers2d", name = "Hide other players 2D", description = "Hide other players' overhead text, hitsplats, and health bars while at the Blast Furnace", section = blastFurnaceSection, position = 2)
+	default boolean blastFurnaceOtherPlayers2d()
+	{
+		return false;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceOtherPlayersPets", name = "Hide other players' pets", description = "Hide pets that are not yours while at the Blast Furnace", section = blastFurnaceSection, position = 3)
+	default boolean blastFurnaceOtherPlayersPets()
+	{
+		return false;
+	}
+
+	@ConfigSection(
+		name = "Feedback",
+		description = "Suggestions, bug reports, and support",
+		position = 99
 	)
 	String feedbackSection = "feedbackSection";
 
@@ -163,7 +194,7 @@ public interface MinimalistConfig extends Config
 	)
 	default String scopeNote()
 	{
-		return "Minimalist currently supports Guardians of the Rift only. "
+		return "Minimalist currently supports Guardians of the Rift and the Blast Furnace. "
 			+ "The intention is to bring minimalism to other areas of the game over time - "
 			+ "feature requests are encouraged!";
 	}

@@ -4,6 +4,7 @@ package com.minimalist.gotr;
 
 import com.minimalist.ContentArea;
 import com.minimalist.MinimalistConfig;
+import com.minimalist.PlayerHiding;
 import com.minimalist.altars.Altars;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,6 +32,7 @@ public class GotrContent implements ContentArea
 {
 	private final Client client;
 	private final MinimalistConfig config;
+	private final PlayerHiding playerHiding;
 
 	private volatile Set<Integer> hiddenObjectIds = Set.of();
 	private volatile Set<Integer> hiddenNpcIds = Set.of();
@@ -38,10 +40,6 @@ public class GotrContent implements ContentArea
 	private volatile Set<Integer> heldTalismanStatues = Set.of();
 	private volatile boolean hideInactiveStatues;
 	private volatile boolean hideProjectiles;
-	private volatile boolean hideOtherPlayers;
-	private volatile boolean hideOtherPlayers2d;
-	private volatile boolean hideOtherPlayersPets;
-	private volatile boolean showFriends;
 	private volatile boolean hideArenaGenericScenery;
 	private volatile boolean sceneIsGotr;
 	private volatile boolean sceneHasAltar;
@@ -52,6 +50,7 @@ public class GotrContent implements ContentArea
 	{
 		this.client = client;
 		this.config = config;
+		this.playerHiding = new PlayerHiding(client);
 	}
 
 	@Override
@@ -68,11 +67,12 @@ public class GotrContent implements ContentArea
 
 		hideInactiveStatues = config.gotrGuardianStatues();
 		hideProjectiles = config.gotrProjectiles();
-		hideOtherPlayers = config.gotrOtherPlayers();
-		hideOtherPlayers2d = config.gotrOtherPlayers2d();
-		hideOtherPlayersPets = config.gotrOtherPlayersPets();
-		showFriends = config.gotrShowFriends();
 		hideArenaGenericScenery = config.gotrAbyssScenery();
+		playerHiding.rebuild(
+			config.gotrOtherPlayers(),
+			config.gotrOtherPlayers2d(),
+			config.gotrOtherPlayersPets(),
+			config.gotrShowFriends());
 
 		hiddenObjectIds = union(
 			toggled(config.gotrAbyssScenery(), GotrArena.ABYSS_SCENERY_OBJECTS),
@@ -106,10 +106,8 @@ public class GotrContent implements ContentArea
 		hiddenWidgets = Set.of();
 		hideInactiveStatues = false;
 		hideProjectiles = false;
-		hideOtherPlayers = false;
-		hideOtherPlayers2d = false;
-		hideOtherPlayersPets = false;
 		hideArenaGenericScenery = false;
+		playerHiding.reset();
 	}
 
 	@Override
@@ -159,29 +157,13 @@ public class GotrContent implements ContentArea
 			return true;
 		}
 
-		return hideOtherPlayersPets && isAtGotrContent() && isSomeoneElsesPet(npc);
-	}
-
-	private boolean isSomeoneElsesPet(NPC npc)
-	{
-		return npc.getComposition().isFollower() && npc != client.getFollower();
+		return playerHiding.hidesPet(npc, isAtGotrContent());
 	}
 
 	@Override
 	public boolean hidesPlayer(Player player, boolean drawingUi)
 	{
-		boolean isOtherPlayerAtGotr = isAtGotrContent() && player != client.getLocalPlayer();
-		if (!isOtherPlayerAtGotr)
-		{
-			return false;
-		}
-
-		if (showFriends && player.isFriend())
-		{
-			return false;
-		}
-
-		return drawingUi ? hideOtherPlayers2d : hideOtherPlayers;
+		return playerHiding.hidesPlayer(player, drawingUi, isAtGotrContent());
 	}
 
 	@Override
