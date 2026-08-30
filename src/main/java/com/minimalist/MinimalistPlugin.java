@@ -124,7 +124,7 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	// TEMPORARY dev diagnostic, removed before merge: log each distinct renderable type
 	// once so we learn how ground items reach addEntity.
 	private final Set<String> seenRenderableTypes = java.util.concurrent.ConcurrentHashMap.newKeySet();
-	private final java.util.Map<String, String> drawObjectWatch = new java.util.concurrent.ConcurrentHashMap<>();
+	private final java.util.Map<String, Long> drawObjectWatch = new java.util.concurrent.ConcurrentHashMap<>();
 
 	@Override
 	public boolean addEntity(Renderable renderable, boolean drawingUi)
@@ -182,7 +182,8 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 			{
 				hidden |= area.hidesObject(scene, object.getId());
 			}
-			drawObjectWatch.put(object.getId() + ":" + object.getClass().getSimpleName(), "hidden=" + hidden);
+			String key = object.getId() + ":" + object.getClass().getSimpleName() + ":" + Thread.currentThread().getName() + ":hidden=" + hidden;
+			drawObjectWatch.merge(key, 1L, Long::sum);
 		}
 
 		if (object instanceof ItemLayer)
@@ -421,7 +422,7 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 			int id = Integer.parseInt(key.split(":")[0]);
 			lines.add("MINIDUMP id=" + key + " count=" + count + " name=" + client.getObjectDefinition(id).getName());
 		});
-		drawObjectWatch.forEach((key, verdict) -> lines.add("MINIWATCH " + key + " " + verdict));
+		drawObjectWatch.forEach((key, asks) -> lines.add("MINIWATCH " + key + " asks=" + asks));
 		java.util.Map<Integer, Integer> itemCounts = new java.util.TreeMap<>();
 		for (Tile[][] plane : scene.getTiles())
 		{
@@ -458,7 +459,7 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	{
 		if (object != null)
 		{
-			counts.merge(object.getId() + ":" + kind + ":" + object.getClass().getSimpleName(), 1, Integer::sum);
+			counts.merge(object.getId() + ":" + kind + ":plane" + object.getPlane() + ":" + object.getClass().getSimpleName(), 1, Integer::sum);
 		}
 	}
 
