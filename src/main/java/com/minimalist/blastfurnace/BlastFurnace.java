@@ -8,7 +8,8 @@ import net.runelite.api.Scene;
 /**
  * Curated IDs for the Blast Furnace room in Keldagrim. Sourced from the game cache.
  *
- * Never hidden, in any category: the conveyor belt, bar dispenser, bars, melting pot,
+ * Never hidden, in any category: the conveyor belt, the bar dispenser (which the scene
+ * stores as varbit base id 9092, not its named 9093-9096 states), bars, melting pot,
  * temperature gauge, and the Blast Furnace Foreman, since every player's core loop
  * needs them.
  */
@@ -44,7 +45,6 @@ public final class BlastFurnace
 	 * Repair op) are deliberately absent so breakage pops into view when it matters.
 	 */
 	public static final Set<Integer> MACHINERY_OBJECTS = Set.of(
-		9092 /* unnamed, varbit-swapped machinery piece, hidden in all states deliberately */,
 		9102 /* Drive belt */,
 		9104 /* Cogs */,
 		9106 /* Gear box */,
