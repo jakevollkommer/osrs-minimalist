@@ -20,8 +20,10 @@ import net.runelite.api.Projectile;
 import net.runelite.api.Renderable;
 import net.runelite.api.Scene;
 import net.runelite.api.TileObject;
+import net.runelite.api.Tile;
 import net.runelite.api.WorldView;
 import net.runelite.api.events.ClientTick;
+import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.PostMenuSort;
@@ -323,6 +325,57 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 			}
 		}
 		return false;
+	}
+
+	// TEMPORARY dev diagnostic, removed before merge: ::minidump logs every object in the
+	// loaded scene so curated ID sets can be built from ground truth.
+	@Subscribe
+	public void onCommandExecuted(CommandExecuted event)
+	{
+		if (!"minidump".equals(event.getCommand()))
+		{
+			return;
+		}
+
+		Scene scene = client.getTopLevelWorldView().getScene();
+		java.util.Map<Integer, Integer> counts = new java.util.TreeMap<>();
+		for (Tile[][] plane : scene.getTiles())
+		{
+			for (Tile[] column : plane)
+			{
+				for (Tile tile : column)
+				{
+					if (tile == null)
+					{
+						continue;
+					}
+					recordObject(counts, tile.getWallObject());
+					recordObject(counts, tile.getDecorativeObject());
+					recordObject(counts, tile.getGroundObject());
+					if (tile.getGameObjects() != null)
+					{
+						for (TileObject gameObject : tile.getGameObjects())
+						{
+							recordObject(counts, gameObject);
+						}
+					}
+				}
+			}
+		}
+		counts.forEach((id, count) ->
+		{
+			String name = client.getObjectDefinition(id).getName();
+			System.out.println("MINIDUMP id=" + id + " count=" + count + " name=" + name);
+		});
+		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Minimalist: dumped " + counts.size() + " object ids to the log.", null);
+	}
+
+	private static void recordObject(java.util.Map<Integer, Integer> counts, TileObject object)
+	{
+		if (object != null)
+		{
+			counts.merge(object.getId(), 1, Integer::sum);
+		}
 	}
 
 	// --- config ---
