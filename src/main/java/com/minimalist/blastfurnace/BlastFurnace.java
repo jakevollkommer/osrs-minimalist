@@ -44,13 +44,21 @@ public final class BlastFurnace
 	 * Repair op) are deliberately absent so breakage pops into view when it matters.
 	 */
 	public static final Set<Integer> MACHINERY_OBJECTS = Set.of(
+		9092 /* unnamed, varbit-swapped machinery piece, hidden in all states deliberately */,
 		9102 /* Drive belt */,
 		9104 /* Cogs */,
 		9106 /* Gear box */,
 		9107 /* Drive belt */,
 		9108 /* Cogs */,
+		9113 /* unnamed machinery parts */,
+		9114 /* unnamed machinery parts */,
 		9116 /* Pipes */,
-		9120 /* Pipes */);
+		9118 /* unnamed machinery parts */,
+		9119 /* unnamed machinery parts */,
+		9120 /* Pipes */,
+		9122 /* unnamed machinery parts */,
+		9124 /* unnamed machinery parts */,
+		9125 /* unnamed machinery parts */);
 
 	/** Smoke billowing from the machinery. */
 	public static final Set<Integer> SMOKE_OBJECTS = Set.of(9099, 9115, 9123);
@@ -68,13 +76,39 @@ public final class BlastFurnace
 		9097 /* Pedals */);
 
 	/**
-	 * Every Coffer object id; the scene gate limits hiding to the Blast Furnace's own,
-	 * which only official-world players need.
+	 * The coffer only official-world players need. The scene stores the varbit-swapped
+	 * base id (29330), never the named "Coffer" transform targets, so this is the id
+	 * the renderer asks about; all of its states are the coffer, hidden deliberately.
 	 */
-	public static final Set<Integer> COFFER_OBJECTS = Set.of(29087, 29328, 29329, 47461, 49921);
+	public static final Set<Integer> COFFER_OBJECTS = Set.of(29330);
 
 	/** The Fill-bucket sink, unnecessary with ice or smiths gloves. */
 	public static final Set<Integer> SINK_OBJECTS = Set.of(9143);
+
+	/** Shelves, boxes, crates, the table, and lamps around the room. */
+	public static final Set<Integer> ROOM_DECORATION_OBJECTS = Set.of(
+		6154, 6155, 6156, 6157 /* Shelves */,
+		6176 /* Boxes, searchable, hidden deliberately */,
+		6177 /* unnamed box decor */,
+		6178 /* Crates */,
+		6196 /* Table */,
+		6203 /* Lamp */,
+		14395 /* Boxes */);
+
+	/** The anvils and the fence and gate around the smithing corner. */
+	public static final Set<Integer> SMITHING_AREA_OBJECTS = Set.of(
+		6150 /* Anvil, Smith op, hidden deliberately */,
+		9139 /* fence segments */,
+		9141 /* Gate, Open op, hidden deliberately */);
+
+	/** The bank deposit box; the bank chest always shows. */
+	public static final Set<Integer> DEPOSIT_BOX_OBJECTS = Set.of(10529);
+
+	/** The bucket, spade, and hammer ground spawns, tracked per spawn tile. */
+	public static final Set<Integer> ITEM_SPAWN_IDS = Set.of(
+		952 /* Spade */,
+		1925 /* Bucket */,
+		2347 /* Hammer */);
 
 	/**
 	 * True when the loaded scene spans the Blast Furnace. Reads the passed Scene, never

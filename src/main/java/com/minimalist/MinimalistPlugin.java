@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.ItemLayer;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
@@ -22,10 +23,13 @@ import net.runelite.api.Scene;
 import net.runelite.api.TileObject;
 import net.runelite.api.Tile;
 import net.runelite.api.WorldView;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.ItemDespawned;
+import net.runelite.api.events.ItemSpawned;
 import net.runelite.api.events.PostMenuSort;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.widgets.Widget;
@@ -168,6 +172,24 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	@Override
 	public boolean drawObject(Scene scene, TileObject object)
 	{
+		if (seenRenderableTypes.add("drawObject:" + object.getClass().getName()))
+		{
+			// TEMPORARY dev instrumentation, removed before merge
+		}
+
+		if (object instanceof ItemLayer)
+		{
+			WorldPoint pileLocation = object.getWorldLocation();
+			for (ContentArea area : contentAreas)
+			{
+				if (area.hidesItemPile(pileLocation))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+
 		int objectId = object.getId();
 		for (ContentArea area : contentAreas)
 		{
@@ -196,6 +218,24 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		for (ContentArea area : contentAreas)
 		{
 			area.onItemContainerChanged(event);
+		}
+	}
+
+	@Subscribe
+	public void onItemSpawned(ItemSpawned event)
+	{
+		for (ContentArea area : contentAreas)
+		{
+			area.onItemSpawned(event);
+		}
+	}
+
+	@Subscribe
+	public void onItemDespawned(ItemDespawned event)
+	{
+		for (ContentArea area : contentAreas)
+		{
+			area.onItemDespawned(event);
 		}
 	}
 

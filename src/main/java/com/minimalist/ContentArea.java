@@ -7,7 +7,10 @@ import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.Scene;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.ItemDespawned;
+import net.runelite.api.events.ItemSpawned;
 import net.runelite.api.events.ScriptPreFired;
 
 /**
@@ -55,6 +58,12 @@ public interface ContentArea
 		return false;
 	}
 
+	/** Tests the ground-item pile at the given tile; areas track qualifying spawn tiles via the item events. */
+	default boolean hidesItemPile(WorldPoint pileLocation)
+	{
+		return false;
+	}
+
 	default boolean hidesPlayer(Player player, boolean drawingUi)
 	{
 		return false;
@@ -82,6 +91,14 @@ public interface ContentArea
 	}
 
 	default void onItemContainerChanged(ItemContainerChanged event)
+	{
+	}
+
+	default void onItemSpawned(ItemSpawned event)
+	{
+	}
+
+	default void onItemDespawned(ItemDespawned event)
 	{
 	}
 }

@@ -23,6 +23,22 @@ public final class ObjectActions
 		}
 	}
 
+	public static boolean isGroundItemAction(MenuAction action)
+	{
+		switch (action)
+		{
+			case GROUND_ITEM_FIRST_OPTION:
+			case GROUND_ITEM_SECOND_OPTION:
+			case GROUND_ITEM_THIRD_OPTION:
+			case GROUND_ITEM_FOURTH_OPTION:
+			case GROUND_ITEM_FIFTH_OPTION:
+			case EXAMINE_ITEM_GROUND:
+				return true;
+			default:
+				return false;
+		}
+	}
+
 	private ObjectActions()
 	{
 	}

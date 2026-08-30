@@ -7,12 +7,18 @@ import com.minimalist.IdSets;
 import com.minimalist.MinimalistConfig;
 import com.minimalist.ObjectActions;
 import com.minimalist.PlayerHiding;
+import java.util.HashSet;
 import java.util.Set;
 import net.runelite.api.Client;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.Scene;
+import net.runelite.api.Tile;
+import net.runelite.api.TileItem;
+import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.ItemDespawned;
+import net.runelite.api.events.ItemSpawned;
 
 /**
  * Everything Minimalist hides at the Blast Furnace: operator dwarves, machinery,
@@ -28,6 +34,8 @@ public class BlastFurnaceContent implements ContentArea
 
 	private volatile Set<Integer> hiddenObjectIds = Set.of();
 	private volatile Set<Integer> hiddenNpcIds = Set.of();
+	private volatile Set<WorldPoint> hiddenItemSpawnTiles = Set.of();
+	private volatile boolean hideItemSpawns;
 	private volatile boolean sceneIsBlastFurnace;
 
 	public BlastFurnaceContent(Client client, MinimalistConfig config)
@@ -52,7 +60,12 @@ public class BlastFurnaceContent implements ContentArea
 			IdSets.toggled(config.blastFurnaceSmoke(), BlastFurnace.SMOKE_OBJECTS),
 			IdSets.toggled(config.blastFurnaceManualEquipment(), BlastFurnace.MANUAL_EQUIPMENT_OBJECTS),
 			IdSets.toggled(config.blastFurnaceCoffer(), BlastFurnace.COFFER_OBJECTS),
-			IdSets.toggled(config.blastFurnaceSink(), BlastFurnace.SINK_OBJECTS));
+			IdSets.toggled(config.blastFurnaceSink(), BlastFurnace.SINK_OBJECTS),
+			IdSets.toggled(config.blastFurnaceRoomDecoration(), BlastFurnace.ROOM_DECORATION_OBJECTS),
+			IdSets.toggled(config.blastFurnaceSmithingArea(), BlastFurnace.SMITHING_AREA_OBJECTS),
+			IdSets.toggled(config.blastFurnaceDepositBox(), BlastFurnace.DEPOSIT_BOX_OBJECTS));
+
+		hideItemSpawns = config.blastFurnaceItemSpawns();
 
 		hiddenNpcIds = IdSets.union(
 			IdSets.toggled(config.blastFurnaceOperatorDwarves(), BlastFurnace.OPERATOR_DWARF_NPCS),
@@ -73,6 +86,8 @@ public class BlastFurnaceContent implements ContentArea
 	{
 		hiddenObjectIds = Set.of();
 		hiddenNpcIds = Set.of();
+		hiddenItemSpawnTiles = Set.of();
+		hideItemSpawns = false;
 		playerHiding.reset();
 	}
 
@@ -115,8 +130,61 @@ public class BlastFurnaceContent implements ContentArea
 	@Override
 	public boolean hidesMenuEntry(MenuEntry entry)
 	{
-		return sceneIsBlastFurnace
-			&& hiddenObjectIds.contains(entry.getIdentifier())
-			&& ObjectActions.isObjectAction(entry.getType());
+		if (!sceneIsBlastFurnace)
+		{
+			return false;
+		}
+
+		if (hiddenObjectIds.contains(entry.getIdentifier()) && ObjectActions.isObjectAction(entry.getType()))
+		{
+			return true;
+		}
+
+		return hideItemSpawns
+			&& BlastFurnace.ITEM_SPAWN_IDS.contains(entry.getIdentifier())
+			&& ObjectActions.isGroundItemAction(entry.getType());
+	}
+
+	@Override
+	public boolean hidesItemPile(WorldPoint pileLocation)
+	{
+		return hideItemSpawns && sceneIsBlastFurnace && hiddenItemSpawnTiles.contains(pileLocation);
+	}
+
+	@Override
+	public void onItemSpawned(ItemSpawned event)
+	{
+		refreshSpawnTile(event.getTile());
+	}
+
+	@Override
+	public void onItemDespawned(ItemDespawned event)
+	{
+		refreshSpawnTile(event.getTile());
+	}
+
+	/**
+	 * A tile is hidden only while every item on it is one of the tracked spawns, so a
+	 * real drop landing on a spawn tile makes the whole pile visible again. Tracking is
+	 * bounded to the furnace region, so these common items never disappear elsewhere.
+	 */
+	private void refreshSpawnTile(Tile tile)
+	{
+		WorldPoint tileLocation = tile.getWorldLocation();
+		if (tileLocation.getRegionID() != BlastFurnace.FURNACE_REGION)
+		{
+			return;
+		}
+
+		boolean pileIsOnlyTrackedSpawns = tile.getGroundItems() != null
+			&& !tile.getGroundItems().isEmpty()
+			&& tile.getGroundItems().stream().map(TileItem::getId).allMatch(BlastFurnace.ITEM_SPAWN_IDS::contains);
+
+		Set<WorldPoint> updated = new HashSet<>(hiddenItemSpawnTiles);
+		boolean changed = pileIsOnlyTrackedSpawns ? updated.add(tileLocation) : updated.remove(tileLocation);
+		if (changed)
+		{
+			hiddenItemSpawnTiles = Set.copyOf(updated);
+		}
 	}
 }
