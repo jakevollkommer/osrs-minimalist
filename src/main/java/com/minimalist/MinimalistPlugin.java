@@ -124,10 +124,7 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	@Override
 	public boolean addEntity(Renderable renderable, boolean drawingUi)
 	{
-		if (seenRenderableTypes.add(renderable.getClass().getName()))
-		{
-			System.out.println("MINIREND " + renderable.getClass().getName());
-		}
+		seenRenderableTypes.add(renderable.getClass().getName());
 		if (renderable instanceof NPC)
 		{
 			NPC npc = (NPC) renderable;
@@ -370,11 +367,9 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 				}
 			}
 		}
+		java.util.List<String> lines = new java.util.ArrayList<>();
 		counts.forEach((id, count) ->
-		{
-			String name = client.getObjectDefinition(id).getName();
-			System.out.println("MINIDUMP id=" + id + " count=" + count + " name=" + name);
-		});
+			lines.add("MINIDUMP id=" + id + " count=" + count + " name=" + client.getObjectDefinition(id).getName()));
 		java.util.Map<Integer, Integer> itemCounts = new java.util.TreeMap<>();
 		for (Tile[][] plane : scene.getTiles())
 		{
@@ -394,8 +389,17 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 			}
 		}
 		itemCounts.forEach((id, count) ->
-			System.out.println("MINIDUMP-ITEM id=" + id + " count=" + count + " name=" + client.getItemDefinition(id).getName()));
-		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Minimalist: dumped " + counts.size() + " object ids to the log.", null);
+			lines.add("MINIDUMP-ITEM id=" + id + " count=" + count + " name=" + client.getItemDefinition(id).getName()));
+		seenRenderableTypes.forEach(type -> lines.add("MINIREND " + type));
+		try
+		{
+			java.nio.file.Files.write(new java.io.File(net.runelite.client.RuneLite.RUNELITE_DIR, "minidump.txt").toPath(), lines);
+		}
+		catch (java.io.IOException ex)
+		{
+			throw new RuntimeException(ex);
+		}
+		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Minimalist: dumped " + counts.size() + " object ids to .runelite/minidump.txt", null);
 	}
 
 	private static void recordObject(java.util.Map<Integer, Integer> counts, TileObject object)
