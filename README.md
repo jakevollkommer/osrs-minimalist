@@ -72,12 +72,13 @@ computer unless you send it.
 ## Code layout
 
 - `MinimalistPlugin`, a content-agnostic dispatcher over the supported areas
-- `ContentArea`, the contract each supported activity implements; shared helpers for
-  player hiding, ID set assembly, and menu stripping live beside it
-- `gotr/`, arena scenery, NPCs, HUD components, and guardian statue data
-- `altars/`, one file per runecrafting altar, plus shared altar decoration and the
-  scene-to-altar resolution
-- `blastfurnace/`, the Blast Furnace room data and rules
+- `content/`, the `ContentArea` contract plus the shared helpers for player hiding,
+  ID set assembly, and menu stripping
+- `content/gotr/`, arena scenery, NPCs, HUD components, and guardian statue data
+- `content/altars/`, one file per runecrafting altar, plus shared altar decoration and
+  the scene-to-altar resolution
+- `content/blastfurnace/`, the Blast Furnace room data and rules
+- `diagnostics/`, the `::minimalist` scene report
 
 ## License
 

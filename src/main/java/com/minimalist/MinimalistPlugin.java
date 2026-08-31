@@ -3,9 +3,11 @@
 package com.minimalist;
 
 import com.google.inject.Provides;
-import com.minimalist.altars.AltarContent;
-import com.minimalist.blastfurnace.BlastFurnaceContent;
-import com.minimalist.gotr.GotrContent;
+import com.minimalist.diagnostics.SceneReport;
+import com.minimalist.content.ContentArea;
+import com.minimalist.content.altars.AltarContent;
+import com.minimalist.content.blastfurnace.BlastFurnaceContent;
+import com.minimalist.content.gotr.GotrContent;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
