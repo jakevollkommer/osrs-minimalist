@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2026, Jake Vollkommer
-package com.minimalist.altars;
+package com.minimalist.content.altars;
 
-import com.minimalist.ContentArea;
+import com.minimalist.content.ContentArea;
 import com.minimalist.MinimalistConfig;
 import java.util.Set;
 import net.runelite.api.NPC;
@@ -38,7 +38,7 @@ public class AltarContent implements ContentArea
 	public boolean rebuildFromConfig()
 	{
 		boolean previous = hideAltarScenery;
-		hideAltarScenery = config.gotrAltarScenery();
+		hideAltarScenery = config.gotrEnabled() && config.gotrAltarScenery();
 		return previous != hideAltarScenery;
 	}
 

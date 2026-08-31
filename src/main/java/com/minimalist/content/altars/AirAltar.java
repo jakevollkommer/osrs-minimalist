@@ -1,29 +1,26 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2026, Jake Vollkommer
-package com.minimalist.altars;
+package com.minimalist.content.altars;
 
 import java.util.Set;
 
-class WaterAltar implements AltarRoom
+class AirAltar implements AltarRoom
 {
 	@Override
 	public String altarName()
 	{
-		return "Water";
+		return "Air";
 	}
 
 	@Override
 	public int baseRegion()
 	{
-		return 10827;
+		return 11339;
 	}
 
 	@Override
 	public Set<Integer> distinctiveScenery()
 	{
-		return Set.of(
-			1175 /* Waterlily */,
-			1176 /* Waterlily */,
-			1177 /* Waterlily */);
+		return Set.of();
 	}
 }

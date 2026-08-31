@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2026, Jake Vollkommer
-package com.minimalist.gotr;
+package com.minimalist.content.gotr;
 
 import net.runelite.api.widgets.WidgetUtil;
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2026, Jake Vollkommer
-package com.minimalist.altars;
+package com.minimalist.content.altars;
 
 import java.util.List;
 import java.util.Map;

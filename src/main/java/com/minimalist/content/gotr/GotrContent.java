@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: BSD-2-Clause
 // Copyright (c) 2026, Jake Vollkommer
-package com.minimalist.gotr;
+package com.minimalist.content.gotr;
 
-import com.minimalist.ContentArea;
+import com.minimalist.content.ContentArea;
+import com.minimalist.content.IdSets;
 import com.minimalist.MinimalistConfig;
-import com.minimalist.altars.Altars;
+import com.minimalist.content.ObjectActions;
+import com.minimalist.content.PlayerHiding;
+import com.minimalist.content.altars.Altars;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import net.runelite.api.Client;
 import net.runelite.api.ItemContainer;
-import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
@@ -31,6 +31,7 @@ public class GotrContent implements ContentArea
 {
 	private final Client client;
 	private final MinimalistConfig config;
+	private final PlayerHiding playerHiding;
 
 	private volatile Set<Integer> hiddenObjectIds = Set.of();
 	private volatile Set<Integer> hiddenNpcIds = Set.of();
@@ -38,10 +39,6 @@ public class GotrContent implements ContentArea
 	private volatile Set<Integer> heldTalismanStatues = Set.of();
 	private volatile boolean hideInactiveStatues;
 	private volatile boolean hideProjectiles;
-	private volatile boolean hideOtherPlayers;
-	private volatile boolean hideOtherPlayers2d;
-	private volatile boolean hideOtherPlayersPets;
-	private volatile boolean showFriends;
 	private volatile boolean hideArenaGenericScenery;
 	private volatile boolean sceneIsGotr;
 	private volatile boolean sceneHasAltar;
@@ -52,6 +49,7 @@ public class GotrContent implements ContentArea
 	{
 		this.client = client;
 		this.config = config;
+		this.playerHiding = new PlayerHiding(client);
 	}
 
 	@Override
@@ -66,33 +64,35 @@ public class GotrContent implements ContentArea
 		Set<Integer> previousObjectIds = hiddenObjectIds;
 		boolean previousArenaGenerics = hideArenaGenericScenery;
 
-		hideInactiveStatues = config.gotrGuardianStatues();
-		hideProjectiles = config.gotrProjectiles();
-		hideOtherPlayers = config.gotrOtherPlayers();
-		hideOtherPlayers2d = config.gotrOtherPlayers2d();
-		hideOtherPlayersPets = config.gotrOtherPlayersPets();
-		showFriends = config.gotrShowFriends();
-		hideArenaGenericScenery = config.gotrAbyssScenery();
+		boolean on = config.gotrEnabled();
+		hideInactiveStatues = on && config.gotrGuardianStatues();
+		hideProjectiles = on && config.gotrProjectiles();
+		hideArenaGenericScenery = on && config.gotrAbyssScenery();
+		playerHiding.rebuild(
+			on && config.gotrOtherPlayers(),
+			on && config.gotrOtherPlayers2d(),
+			on && config.gotrOtherPlayersPets(),
+			config.gotrShowFriends());
 
-		hiddenObjectIds = union(
-			toggled(config.gotrAbyssScenery(), GotrArena.ABYSS_SCENERY_OBJECTS),
-			toggled(config.gotrGuardianRemains(), GotrArena.GUARDIAN_REMAINS_OBJECTS),
-			toggled(config.gotrEssencePiles(), GotrArena.ESSENCE_PILE_OBJECTS),
-			toggled(config.gotrBarriersAndCells(), GotrArena.BARRIER_AND_CELL_OBJECTS),
-			toggled(config.gotrEntranceScenery(), GotrArena.ENTRANCE_SCENERY_OBJECTS),
-			toggled(config.gotrRain(), GotrArena.RAIN_OBJECTS));
+		hiddenObjectIds = IdSets.union(
+			IdSets.toggled(on && config.gotrAbyssScenery(), GotrArena.ABYSS_SCENERY_OBJECTS),
+			IdSets.toggled(on && config.gotrGuardianRemains(), GotrArena.GUARDIAN_REMAINS_OBJECTS),
+			IdSets.toggled(on && config.gotrEssencePiles(), GotrArena.ESSENCE_PILE_OBJECTS),
+			IdSets.toggled(on && config.gotrBarriersAndCells(), GotrArena.BARRIER_AND_CELL_OBJECTS),
+			IdSets.toggled(on && config.gotrEntranceScenery(), GotrArena.ENTRANCE_SCENERY_OBJECTS),
+			IdSets.toggled(on && config.gotrRain(), GotrArena.RAIN_OBJECTS));
 
-		hiddenNpcIds = union(
-			toggled(config.gotrAbyssalCreatures(), GotrNpcs.ABYSSAL_CREATURES),
-			toggled(config.gotrSummonedGuardians(), GotrNpcs.SUMMONED_GUARDIANS),
-			toggled(config.gotrApprentices(), GotrNpcs.APPRENTICES),
-			toggled(config.gotrRick(), GotrNpcs.RICK),
-			toggled(config.gotrBarrierHitsplats(), GotrNpcs.BARRIER_HITPOINT_HOLDERS));
+		hiddenNpcIds = IdSets.union(
+			IdSets.toggled(on && config.gotrAbyssalCreatures(), GotrNpcs.ABYSSAL_CREATURES),
+			IdSets.toggled(on && config.gotrSummonedGuardians(), GotrNpcs.SUMMONED_GUARDIANS),
+			IdSets.toggled(on && config.gotrApprentices(), GotrNpcs.APPRENTICES),
+			IdSets.toggled(on && config.gotrRick(), GotrNpcs.RICK),
+			IdSets.toggled(on && config.gotrBarrierHitsplats(), GotrNpcs.BARRIER_HITPOINT_HOLDERS));
 
-		hiddenWidgets = union(
-			toggled(config.gotrHudPortalTimer(), Set.of(GotrHud.PORTAL_TIMER_COMPONENT)),
-			toggled(config.gotrHudGuardianCounter(), Set.of(GotrHud.GUARDIAN_COUNTER_COMPONENT)),
-			toggled(config.gotrHudPortalLocation(), Set.of(GotrHud.PORTAL_LOCATION_COMPONENT)));
+		hiddenWidgets = IdSets.union(
+			IdSets.toggled(on && config.gotrHudPortalTimer(), Set.of(GotrHud.PORTAL_TIMER_COMPONENT)),
+			IdSets.toggled(on && config.gotrHudGuardianCounter(), Set.of(GotrHud.GUARDIAN_COUNTER_COMPONENT)),
+			IdSets.toggled(on && config.gotrHudPortalLocation(), Set.of(GotrHud.PORTAL_LOCATION_COMPONENT)));
 
 		return !previousObjectIds.equals(hiddenObjectIds)
 			|| previousArenaGenerics != hideArenaGenericScenery;
@@ -106,10 +106,8 @@ public class GotrContent implements ContentArea
 		hiddenWidgets = Set.of();
 		hideInactiveStatues = false;
 		hideProjectiles = false;
-		hideOtherPlayers = false;
-		hideOtherPlayers2d = false;
-		hideOtherPlayersPets = false;
 		hideArenaGenericScenery = false;
+		playerHiding.reset();
 	}
 
 	@Override
@@ -159,29 +157,13 @@ public class GotrContent implements ContentArea
 			return true;
 		}
 
-		return hideOtherPlayersPets && isAtGotrContent() && isSomeoneElsesPet(npc);
-	}
-
-	private boolean isSomeoneElsesPet(NPC npc)
-	{
-		return npc.getComposition().isFollower() && npc != client.getFollower();
+		return playerHiding.hidesPet(npc, isAtGotrContent());
 	}
 
 	@Override
 	public boolean hidesPlayer(Player player, boolean drawingUi)
 	{
-		boolean isOtherPlayerAtGotr = isAtGotrContent() && player != client.getLocalPlayer();
-		if (!isOtherPlayerAtGotr)
-		{
-			return false;
-		}
-
-		if (showFriends && player.isFriend())
-		{
-			return false;
-		}
-
-		return drawingUi ? hideOtherPlayers2d : hideOtherPlayers;
+		return playerHiding.hidesPlayer(player, drawingUi, isAtGotrContent());
 	}
 
 	@Override
@@ -207,7 +189,7 @@ public class GotrContent implements ContentArea
 		return hideInactiveStatues
 			&& sceneIsGotr
 			&& GuardianStatues.STATUE_OBJECTS.contains(entry.getIdentifier())
-			&& isObjectAction(entry.getType())
+			&& ObjectActions.isObjectAction(entry.getType())
 			&& isHiddenStatue(entry.getIdentifier());
 	}
 
@@ -272,35 +254,6 @@ public class GotrContent implements ContentArea
 			}
 		});
 		heldTalismanStatues = Set.copyOf(held);
-	}
-
-	private static boolean isObjectAction(MenuAction action)
-	{
-		switch (action)
-		{
-			case GAME_OBJECT_FIRST_OPTION:
-			case GAME_OBJECT_SECOND_OPTION:
-			case GAME_OBJECT_THIRD_OPTION:
-			case GAME_OBJECT_FOURTH_OPTION:
-			case GAME_OBJECT_FIFTH_OPTION:
-			case EXAMINE_OBJECT:
-				return true;
-			default:
-				return false;
-		}
-	}
-
-	private static Set<Integer> toggled(boolean enabled, Set<Integer> curatedIds)
-	{
-		return enabled ? curatedIds : Set.of();
-	}
-
-	@SafeVarargs
-	private static Set<Integer> union(Set<Integer>... sets)
-	{
-		return Stream.of(sets)
-			.flatMap(Set::stream)
-			.collect(Collectors.toUnmodifiableSet());
 	}
 
 	private static int asInt(Object argument)

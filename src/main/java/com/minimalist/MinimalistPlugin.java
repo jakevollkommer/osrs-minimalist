@@ -3,8 +3,11 @@
 package com.minimalist;
 
 import com.google.inject.Provides;
-import com.minimalist.altars.AltarContent;
-import com.minimalist.gotr.GotrContent;
+import com.minimalist.diagnostics.SceneReport;
+import com.minimalist.content.ContentArea;
+import com.minimalist.content.altars.AltarContent;
+import com.minimalist.content.blastfurnace.BlastFurnaceContent;
+import com.minimalist.content.gotr.GotrContent;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,6 +15,7 @@ import javax.inject.Inject;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.ItemLayer;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
@@ -20,9 +24,13 @@ import net.runelite.api.Renderable;
 import net.runelite.api.Scene;
 import net.runelite.api.TileObject;
 import net.runelite.api.WorldView;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.ItemDespawned;
+import net.runelite.api.events.ItemSpawned;
 import net.runelite.api.events.PostMenuSort;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.widgets.Widget;
@@ -39,7 +47,7 @@ import net.runelite.client.util.LinkBrowser;
 @PluginDescriptor(
 	name = "Minimalist",
 	description = "Hide non-interactable scenery objects, NPCs, and HUD elements at supported content",
-	tags = {"jake", "hide", "hider", "scenery", "object", "objects", "npc", "entity", "declutter", "clean", "minimal", "gotr", "guardians", "rift", "runecrafting", "runecraft", "altar", "altars", "minigame", "hud"}
+	tags = {"jake", "hide", "hider", "scenery", "object", "objects", "npc", "entity", "declutter", "clean", "minimal", "gotr", "guardians", "rift", "runecrafting", "runecraft", "altar", "altars", "minigame", "hud", "blast", "furnace", "smithing"}
 )
 public class MinimalistPlugin extends Plugin implements RenderCallback
 {
@@ -82,6 +90,7 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		{
 			new GotrContent(client, config),
 			new AltarContent(config),
+			new BlastFurnaceContent(client, config),
 		};
 		renderCallbackManager.register(this);
 		clientThread.invokeLater(() ->
@@ -159,6 +168,19 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	@Override
 	public boolean drawObject(Scene scene, TileObject object)
 	{
+		if (object instanceof ItemLayer)
+		{
+			WorldPoint pileLocation = object.getWorldLocation();
+			for (ContentArea area : contentAreas)
+			{
+				if (area.hidesItemPile(pileLocation))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+
 		int objectId = object.getId();
 		for (ContentArea area : contentAreas)
 		{
@@ -187,6 +209,24 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 		for (ContentArea area : contentAreas)
 		{
 			area.onItemContainerChanged(event);
+		}
+	}
+
+	@Subscribe
+	public void onItemSpawned(ItemSpawned event)
+	{
+		for (ContentArea area : contentAreas)
+		{
+			area.onItemSpawned(event);
+		}
+	}
+
+	@Subscribe
+	public void onItemDespawned(ItemDespawned event)
+	{
+		for (ContentArea area : contentAreas)
+		{
+			area.onItemDespawned(event);
 		}
 	}
 
@@ -321,6 +361,30 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 			}
 		}
 		return false;
+	}
+
+	// --- diagnostics ---
+
+	/** ::minimalist writes a scene report players can attach to bug reports. */
+	@Subscribe
+	public void onCommandExecuted(CommandExecuted event)
+	{
+		if (!"minimalist".equals(event.getCommand()))
+		{
+			return;
+		}
+
+		try
+		{
+			int entries = SceneReport.write(client, contentAreas);
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
+				"Minimalist: wrote " + entries + " scene entries to .runelite/" + SceneReport.FILE_NAME, null);
+		}
+		catch (java.io.IOException ex)
+		{
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
+				"Minimalist: could not write the scene report.", null);
+		}
 	}
 
 	// --- config ---
