@@ -50,6 +50,10 @@ public final class BlastFurnace
 		9106 /* Gear box */,
 		9107 /* Drive belt */,
 		9108 /* Cogs */,
+		8919 /* wooden platform parts */,
+		8920 /* wooden platform parts */,
+		8922 /* wooden platform parts */,
+		8923 /* wooden platform parts */,
 		9109 /* unnamed machinery parts */,
 		9110 /* unnamed machinery parts */,
 		9111 /* unnamed machinery parts */,
@@ -106,7 +110,7 @@ public final class BlastFurnace
 		9141 /* Gate, Open op, hidden deliberately */);
 
 	/** The wooden plank ramp up to the conveyor belt, drawn as ground objects. */
-	public static final Set<Integer> CONVEYOR_RAMP_OBJECTS = Set.of(8919, 8920, 8922, 8923);
+	public static final Set<Integer> CONVEYOR_RAMP_OBJECTS = Set.of(799);
 
 	/** The bank deposit box; the bank chest always shows. */
 	public static final Set<Integer> DEPOSIT_BOX_OBJECTS = Set.of(10529);
