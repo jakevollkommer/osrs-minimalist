@@ -105,6 +105,9 @@ public final class BlastFurnace
 		9139 /* fence segments */,
 		9141 /* Gate, Open op, hidden deliberately */);
 
+	/** The wooden plank ramp up to the conveyor belt, drawn as ground objects. */
+	public static final Set<Integer> CONVEYOR_RAMP_OBJECTS = Set.of(8919, 8920, 8922, 8923);
+
 	/** The bank deposit box; the bank chest always shows. */
 	public static final Set<Integer> DEPOSIT_BOX_OBJECTS = Set.of(10529);
 

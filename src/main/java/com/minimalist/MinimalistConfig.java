@@ -220,7 +220,13 @@ public interface MinimalistConfig extends Config
 		return false;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceItemSpawns", name = "Hide item spawns", description = "The bucket, spade, and hammer ground spawns; keep visible if you run the furnace manually", section = blastFurnaceSection, position = 11)
+	@ConfigItem(keyName = "blastFurnaceConveyorRamp", name = "Hide conveyor ramp", description = "The wooden ramp up to the conveyor belt; it still blocks and carries walking", section = blastFurnaceSection, position = 11)
+	default boolean blastFurnaceConveyorRamp()
+	{
+		return false;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceItemSpawns", name = "Hide item spawns", description = "The bucket, spade, and hammer ground spawns; keep visible if you run the furnace manually", section = blastFurnaceSection, position = 16)
 	default boolean blastFurnaceItemSpawns()
 	{
 		return false;

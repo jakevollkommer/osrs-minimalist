@@ -63,7 +63,8 @@ public class BlastFurnaceContent implements ContentArea
 			IdSets.toggled(config.blastFurnaceSink(), BlastFurnace.SINK_OBJECTS),
 			IdSets.toggled(config.blastFurnaceRoomDecoration(), BlastFurnace.ROOM_DECORATION_OBJECTS),
 			IdSets.toggled(config.blastFurnaceSmithingArea(), BlastFurnace.SMITHING_AREA_OBJECTS),
-			IdSets.toggled(config.blastFurnaceDepositBox(), BlastFurnace.DEPOSIT_BOX_OBJECTS));
+			IdSets.toggled(config.blastFurnaceDepositBox(), BlastFurnace.DEPOSIT_BOX_OBJECTS),
+			IdSets.toggled(config.blastFurnaceConveyorRamp(), BlastFurnace.CONVEYOR_RAMP_OBJECTS));
 
 		hideItemSpawns = config.blastFurnaceItemSpawns();
 
