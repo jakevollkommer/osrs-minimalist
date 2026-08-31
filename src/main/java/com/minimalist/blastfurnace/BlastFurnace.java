@@ -70,6 +70,17 @@ public final class BlastFurnace
 		9124 /* unnamed machinery parts */,
 		9125 /* unnamed machinery parts */);
 
+	/**
+	 * The broken machinery variants, all carrying a Repair op. Kept out of the normal
+	 * machinery set so breakage shows by default; hiding them is a deliberate opt-in
+	 * for official worlds where the dwarves do the repairing.
+	 */
+	public static final Set<Integer> BROKEN_MACHINERY_OBJECTS = Set.of(
+		9103 /* Drive belt */,
+		9105 /* Cogs */,
+		9117 /* Pipes */,
+		9121 /* Pipes */);
+
 	/** Smoke billowing from the machinery. */
 	public static final Set<Integer> SMOKE_OBJECTS = Set.of(9099, 9115, 9123);
 

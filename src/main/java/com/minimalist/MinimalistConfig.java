@@ -197,85 +197,91 @@ public interface MinimalistConfig extends Config
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceSmoke", name = "Hide smoke", description = "Smoke from the furnace machinery", section = blastFurnaceSection, position = 5)
+	@ConfigItem(keyName = "blastFurnaceBrokenMachinery", name = "Hide broken machinery", description = "Broken cogs, pipes, and drive belt; only hide these on official worlds, manual worlds need to see what to repair", section = blastFurnaceSection, position = 5)
+	default boolean blastFurnaceBrokenMachinery()
+	{
+		return false;
+	}
+
+	@ConfigItem(keyName = "blastFurnaceSmoke", name = "Hide smoke", description = "Smoke from the furnace machinery", section = blastFurnaceSection, position = 6)
 	default boolean blastFurnaceSmoke()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceManualEquipment", name = "Hide manual equipment", description = "Pedals, pump, stove, coke, and the temperature gauge; needed on non-official worlds and used for niche Strength, Agility, and Firemaking training", section = blastFurnaceSection, position = 6)
+	@ConfigItem(keyName = "blastFurnaceManualEquipment", name = "Hide manual equipment", description = "Pedals, pump, stove, coke, and the temperature gauge; needed on non-official worlds and used for niche Strength, Agility, and Firemaking training", section = blastFurnaceSection, position = 7)
 	default boolean blastFurnaceManualEquipment()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceCoffer", name = "Hide coffer", description = "Only official worlds need the coffer; hide it if you run the furnace manually", section = blastFurnaceSection, position = 7)
+	@ConfigItem(keyName = "blastFurnaceCoffer", name = "Hide coffer", description = "Only official worlds need the coffer; hide it if you run the furnace manually", section = blastFurnaceSection, position = 8)
 	default boolean blastFurnaceCoffer()
 	{
 		return false;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceSink", name = "Hide sink", description = "The Fill-bucket sink, unnecessary with ice or smiths gloves", section = blastFurnaceSection, position = 8)
+	@ConfigItem(keyName = "blastFurnaceSink", name = "Hide sink", description = "The Fill-bucket sink, unnecessary with ice or smiths gloves", section = blastFurnaceSection, position = 9)
 	default boolean blastFurnaceSink()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceRoomDecoration", name = "Hide room decoration", description = "Shelves, boxes, crates, the table, and lamps", section = blastFurnaceSection, position = 9)
+	@ConfigItem(keyName = "blastFurnaceRoomDecoration", name = "Hide room decoration", description = "Shelves, boxes, crates, the table, and lamps", section = blastFurnaceSection, position = 10)
 	default boolean blastFurnaceRoomDecoration()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceSmithingArea", name = "Hide smithing area", description = "The anvils and the fence and gate around them; the fence still blocks walking", section = blastFurnaceSection, position = 10)
+	@ConfigItem(keyName = "blastFurnaceSmithingArea", name = "Hide smithing area", description = "The anvils and the fence and gate around them; the fence still blocks walking", section = blastFurnaceSection, position = 11)
 	default boolean blastFurnaceSmithingArea()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceDepositBox", name = "Hide bank deposit box", description = "The deposit box next to the bank chest; the bank chest always shows", section = blastFurnaceSection, position = 11)
+	@ConfigItem(keyName = "blastFurnaceDepositBox", name = "Hide bank deposit box", description = "The deposit box next to the bank chest; the bank chest always shows", section = blastFurnaceSection, position = 12)
 	default boolean blastFurnaceDepositBox()
 	{
 		return false;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceConveyorRamp", name = "Hide conveyor ramp", description = "The wooden ramp up to the conveyor belt; it still blocks and carries walking", section = blastFurnaceSection, position = 12)
+	@ConfigItem(keyName = "blastFurnaceConveyorRamp", name = "Hide conveyor ramp", description = "The wooden ramp up to the conveyor belt; it still blocks and carries walking", section = blastFurnaceSection, position = 13)
 	default boolean blastFurnaceConveyorRamp()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceItemSpawns", name = "Hide item spawns", description = "The bucket, spade, and hammer ground spawns; keep visible if you run the furnace manually", section = blastFurnaceSection, position = 18)
+	@ConfigItem(keyName = "blastFurnaceItemSpawns", name = "Hide item spawns", description = "The bucket, spade, and hammer ground spawns; keep visible if you run the furnace manually", section = blastFurnaceSection, position = 19)
 	default boolean blastFurnaceItemSpawns()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceStaircase", name = "Hide the staircase", description = "The exit staircase; it stays clickable while hidden", section = blastFurnaceSection, position = 13)
+	@ConfigItem(keyName = "blastFurnaceStaircase", name = "Hide the staircase", description = "The exit staircase; it stays clickable while hidden", section = blastFurnaceSection, position = 14)
 	default boolean blastFurnaceStaircase()
 	{
 		return false;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceOtherPlayers", name = "Hide other players", description = "Hide other players while at the Blast Furnace", section = blastFurnaceSection, position = 14)
+	@ConfigItem(keyName = "blastFurnaceOtherPlayers", name = "Hide other players", description = "Hide other players while at the Blast Furnace", section = blastFurnaceSection, position = 15)
 	default boolean blastFurnaceOtherPlayers()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceShowFriends", name = "Show friends", description = "Keep friends visible when hiding other players", section = blastFurnaceSection, position = 15)
+	@ConfigItem(keyName = "blastFurnaceShowFriends", name = "Show friends", description = "Keep friends visible when hiding other players", section = blastFurnaceSection, position = 16)
 	default boolean blastFurnaceShowFriends()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceOtherPlayers2d", name = "Hide other players 2D", description = "Hide other players' overhead text, hitsplats, and health bars while at the Blast Furnace", section = blastFurnaceSection, position = 16)
+	@ConfigItem(keyName = "blastFurnaceOtherPlayers2d", name = "Hide other players 2D", description = "Hide other players' overhead text, hitsplats, and health bars while at the Blast Furnace", section = blastFurnaceSection, position = 17)
 	default boolean blastFurnaceOtherPlayers2d()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceOtherPlayersPets", name = "Hide other players' pets", description = "Hide pets that are not yours while at the Blast Furnace", section = blastFurnaceSection, position = 17)
+	@ConfigItem(keyName = "blastFurnaceOtherPlayersPets", name = "Hide other players' pets", description = "Hide pets that are not yours while at the Blast Furnace", section = blastFurnaceSection, position = 18)
 	default boolean blastFurnaceOtherPlayersPets()
 	{
 		return true;

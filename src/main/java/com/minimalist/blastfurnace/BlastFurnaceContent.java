@@ -58,6 +58,7 @@ public class BlastFurnaceContent implements ContentArea
 
 		hiddenObjectIds = IdSets.union(
 			IdSets.toggled(on && config.blastFurnaceMachinery(), BlastFurnace.MACHINERY_OBJECTS),
+			IdSets.toggled(on && config.blastFurnaceBrokenMachinery(), BlastFurnace.BROKEN_MACHINERY_OBJECTS),
 			IdSets.toggled(on && config.blastFurnaceSmoke(), BlastFurnace.SMOKE_OBJECTS),
 			IdSets.toggled(on && config.blastFurnaceManualEquipment(), BlastFurnace.MANUAL_EQUIPMENT_OBJECTS),
 			IdSets.toggled(on && config.blastFurnaceCoffer(), BlastFurnace.COFFER_OBJECTS),
