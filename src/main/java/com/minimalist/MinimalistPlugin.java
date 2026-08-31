@@ -25,6 +25,7 @@ import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.ItemDespawned;
 import net.runelite.api.events.ItemSpawned;
@@ -358,6 +359,30 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 			}
 		}
 		return false;
+	}
+
+	// --- diagnostics ---
+
+	/** ::minimalist writes a scene report players can attach to bug reports. */
+	@Subscribe
+	public void onCommandExecuted(CommandExecuted event)
+	{
+		if (!"minimalist".equals(event.getCommand()))
+		{
+			return;
+		}
+
+		try
+		{
+			int entries = SceneReport.write(client, contentAreas);
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
+				"Minimalist: wrote " + entries + " scene entries to .runelite/" + SceneReport.FILE_NAME, null);
+		}
+		catch (java.io.IOException ex)
+		{
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "",
+				"Minimalist: could not write the scene report.", null);
+		}
 	}
 
 	// --- config ---

@@ -62,6 +62,13 @@ never hideable.
 - Everything functional is deliberately excluded: mineable remains, the passable barrier,
   agility shortcuts, ladders, altars, portals, and exit markers always render.
 
+## Troubleshooting
+
+Something hidden that should not be, or the other way around? Type `::minimalist` in the
+chat and attach `.runelite/minimalist-scene-report.txt` to a GitHub issue. It lists every
+object in the loaded scene and what the plugin decided about it, and it never leaves your
+computer unless you send it.
+
 ## Code layout
 
 - `MinimalistPlugin`, a content-agnostic dispatcher over the supported areas
