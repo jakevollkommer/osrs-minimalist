@@ -40,13 +40,13 @@ so hidden objects stay hoverable, clickable, and visible to other plugins.
 | Delivery miners | The Dwarven Miners restocking Ordan's shop |
 | Machinery | Cogs, pipes, gear box, and drive belt; broken machinery always shows so repairs are never missed |
 | Smoke | Smoke from the furnace machinery |
-| Manual equipment | Pedals, pump, stove, and coke, needed on non-official worlds and used for niche Strength, Agility, and Firemaking training |
+| Manual equipment | Pedals, pump, stove, coke, and the temperature gauge, needed on non-official worlds and used for niche Strength, Agility, and Firemaking training |
 | Coffer | The coins coffer, only needed on official worlds |
 | Sink | The Fill-bucket sink, unnecessary with ice or smiths gloves |
 | Other players | Other players, their 2D elements, and their pets, with a Show friends exemption |
 
-The conveyor belt, bar dispenser, bars, melting pot, temperature gauge, and the Blast
-Furnace Foreman are never hideable.
+The conveyor belt, bar dispenser, bars, melting pot, and the Blast Furnace Foreman are
+never hideable.
 
 ## How it works
 

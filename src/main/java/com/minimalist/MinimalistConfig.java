@@ -184,7 +184,7 @@ public interface MinimalistConfig extends Config
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceManualEquipment", name = "Hide manual equipment", description = "Pedals, pump, stove, and coke; needed on non-official worlds and used for niche Strength, Agility, and Firemaking training", section = blastFurnaceSection, position = 5)
+	@ConfigItem(keyName = "blastFurnaceManualEquipment", name = "Hide manual equipment", description = "Pedals, pump, stove, coke, and the temperature gauge; needed on non-official worlds and used for niche Strength, Agility, and Firemaking training", section = blastFurnaceSection, position = 5)
 	default boolean blastFurnaceManualEquipment()
 	{
 		return false;
