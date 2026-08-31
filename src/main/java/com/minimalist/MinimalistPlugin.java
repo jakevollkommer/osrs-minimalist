@@ -21,11 +21,9 @@ import net.runelite.api.Projectile;
 import net.runelite.api.Renderable;
 import net.runelite.api.Scene;
 import net.runelite.api.TileObject;
-import net.runelite.api.Tile;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ClientTick;
-import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.ItemDespawned;
@@ -121,15 +119,9 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 
 	// --- RenderCallback: the single place visibility is decided ---
 
-	// TEMPORARY dev diagnostic, removed before merge: log each distinct renderable type
-	// once so we learn how ground items reach addEntity.
-	private final Set<String> seenRenderableTypes = java.util.concurrent.ConcurrentHashMap.newKeySet();
-	private final java.util.Map<String, Long> drawObjectWatch = new java.util.concurrent.ConcurrentHashMap<>();
-
 	@Override
 	public boolean addEntity(Renderable renderable, boolean drawingUi)
 	{
-		seenRenderableTypes.add(renderable.getClass().getName());
 		if (renderable instanceof NPC)
 		{
 			NPC npc = (NPC) renderable;
@@ -173,19 +165,6 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 	@Override
 	public boolean drawObject(Scene scene, TileObject object)
 	{
-		// TEMPORARY dev instrumentation, removed before merge: record what the renderer
-		// asks about ids in the Blast Furnace band and what we answered.
-		if (object.getId() >= 6150 && object.getId() <= 29330)
-		{
-			boolean hidden = false;
-			for (ContentArea area : contentAreas)
-			{
-				hidden |= area.hidesObject(scene, object.getId());
-			}
-			String key = object.getId() + ":" + object.getClass().getSimpleName() + ":" + Thread.currentThread().getName() + ":hidden=" + hidden;
-			drawObjectWatch.merge(key, 1L, Long::sum);
-		}
-
 		if (object instanceof ItemLayer)
 		{
 			WorldPoint pileLocation = object.getWorldLocation();
@@ -379,88 +358,6 @@ public class MinimalistPlugin extends Plugin implements RenderCallback
 			}
 		}
 		return false;
-	}
-
-	// TEMPORARY dev diagnostic, removed before merge: ::minidump logs every object in the
-	// loaded scene so curated ID sets can be built from ground truth.
-	@Subscribe
-	public void onCommandExecuted(CommandExecuted event)
-	{
-		if (!"minidump".equals(event.getCommand()))
-		{
-			return;
-		}
-
-		Scene scene = client.getTopLevelWorldView().getScene();
-		java.util.Map<String, Integer> counts = new java.util.TreeMap<>();
-		for (Tile[][] plane : scene.getTiles())
-		{
-			for (Tile[] column : plane)
-			{
-				for (Tile tile : column)
-				{
-					if (tile == null)
-					{
-						continue;
-					}
-					recordTyped(counts, tile.getWallObject(), "wall");
-					recordTyped(counts, tile.getDecorativeObject(), "decor");
-					recordTyped(counts, tile.getGroundObject(), "ground");
-					if (tile.getGameObjects() != null)
-					{
-						for (TileObject gameObject : tile.getGameObjects())
-						{
-							recordTyped(counts, gameObject, "game");
-						}
-					}
-				}
-			}
-		}
-		java.util.List<String> lines = new java.util.ArrayList<>();
-		counts.forEach((key, count) ->
-		{
-			int id = Integer.parseInt(key.split(":")[0]);
-			lines.add("MINIDUMP id=" + key + " count=" + count + " name=" + client.getObjectDefinition(id).getName());
-		});
-		drawObjectWatch.forEach((key, asks) -> lines.add("MINIWATCH " + key + " asks=" + asks));
-		java.util.Map<Integer, Integer> itemCounts = new java.util.TreeMap<>();
-		for (Tile[][] plane : scene.getTiles())
-		{
-			for (Tile[] column : plane)
-			{
-				for (Tile tile : column)
-				{
-					if (tile == null || tile.getGroundItems() == null)
-					{
-						continue;
-					}
-					for (net.runelite.api.TileItem groundItem : tile.getGroundItems())
-					{
-						itemCounts.merge(groundItem.getId(), 1, Integer::sum);
-					}
-				}
-			}
-		}
-		itemCounts.forEach((id, count) ->
-			lines.add("MINIDUMP-ITEM id=" + id + " count=" + count + " name=" + client.getItemDefinition(id).getName()));
-		seenRenderableTypes.forEach(type -> lines.add("MINIREND " + type));
-		try
-		{
-			java.nio.file.Files.write(new java.io.File(net.runelite.client.RuneLite.RUNELITE_DIR, "minidump.txt").toPath(), lines);
-		}
-		catch (java.io.IOException ex)
-		{
-			throw new RuntimeException(ex);
-		}
-		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Minimalist: dumped " + counts.size() + " object ids to .runelite/minidump.txt", null);
-	}
-
-	private static void recordTyped(java.util.Map<String, Integer> counts, TileObject object, String kind)
-	{
-		if (object != null)
-		{
-			counts.merge(object.getId() + ":" + kind + ":plane" + object.getPlane() + ":" + object.getClass().getSimpleName(), 1, Integer::sum);
-		}
 	}
 
 	// --- config ---
