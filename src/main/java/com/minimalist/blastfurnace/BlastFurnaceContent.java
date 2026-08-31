@@ -65,12 +65,14 @@ public class BlastFurnaceContent implements ContentArea
 			IdSets.toggled(on && config.blastFurnaceRoomDecoration(), BlastFurnace.ROOM_DECORATION_OBJECTS),
 			IdSets.toggled(on && config.blastFurnaceSmithingArea(), BlastFurnace.SMITHING_AREA_OBJECTS),
 			IdSets.toggled(on && config.blastFurnaceDepositBox(), BlastFurnace.DEPOSIT_BOX_OBJECTS),
-			IdSets.toggled(on && config.blastFurnaceConveyorRamp(), BlastFurnace.CONVEYOR_RAMP_OBJECTS));
+			IdSets.toggled(on && config.blastFurnaceConveyorRamp(), BlastFurnace.CONVEYOR_RAMP_OBJECTS),
+			IdSets.toggled(on && config.blastFurnaceStaircase(), BlastFurnace.STAIRCASE_OBJECTS));
 
 		hideItemSpawns = on && config.blastFurnaceItemSpawns();
 
 		hiddenNpcIds = IdSets.union(
 			IdSets.toggled(on && config.blastFurnaceOperatorDwarves(), BlastFurnace.OPERATOR_DWARF_NPCS),
+			IdSets.toggled(on && config.blastFurnaceForeman(), BlastFurnace.FOREMAN_NPCS),
 			IdSets.toggled(on && config.blastFurnaceMerchants(), BlastFurnace.MERCHANT_NPCS),
 			IdSets.toggled(on && config.blastFurnaceDeliveryMiners(), BlastFurnace.DELIVERY_MINER_NPCS));
 

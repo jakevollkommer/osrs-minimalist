@@ -9,8 +9,8 @@ import net.runelite.api.Scene;
  * Curated IDs for the Blast Furnace room in Keldagrim. Sourced from the game cache.
  *
  * Never hidden, in any category: the conveyor belt, the bar dispenser (which the scene
- * stores as varbit base id 9092, not its named 9093-9096 states), bars, the melting pot,
- * and the Blast Furnace Foreman, since every player's core loop needs them.
+ * stores as varbit base id 9092, not its named 9093-9096 states), bars, and the melting
+ * pot, since every player's core loop needs them.
  */
 public final class BlastFurnace
 {
@@ -25,6 +25,9 @@ public final class BlastFurnace
 		7385 /* Pumpy */,
 		7386 /* Dumpy */,
 		7387 /* Dumpy */);
+
+	/** The Blast Furnace Foreman; he takes the entrance fee under 60 Smithing. */
+	public static final Set<Integer> FOREMAN_NPCS = Set.of(2923);
 
 	/** Ordan (ore shop) and Jorzik (armour shop); optional because their shops are real. */
 	public static final Set<Integer> MERCHANT_NPCS = Set.of(
@@ -111,6 +114,9 @@ public final class BlastFurnace
 
 	/** The wooden plank ramp up to the conveyor belt, drawn as ground objects. */
 	public static final Set<Integer> CONVEYOR_RAMP_OBJECTS = Set.of(799);
+
+	/** The exit staircase; it stays clickable while hidden. */
+	public static final Set<Integer> STAIRCASE_OBJECTS = Set.of(9138);
 
 	/** The bank deposit box; the bank chest always shows. */
 	public static final Set<Integer> DEPOSIT_BOX_OBJECTS = Set.of(10529);
