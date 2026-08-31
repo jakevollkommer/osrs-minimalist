@@ -54,29 +54,30 @@ public class BlastFurnaceContent implements ContentArea
 	public boolean rebuildFromConfig()
 	{
 		Set<Integer> previousObjectIds = hiddenObjectIds;
+		boolean on = config.blastFurnaceEnabled();
 
 		hiddenObjectIds = IdSets.union(
-			IdSets.toggled(config.blastFurnaceMachinery(), BlastFurnace.MACHINERY_OBJECTS),
-			IdSets.toggled(config.blastFurnaceSmoke(), BlastFurnace.SMOKE_OBJECTS),
-			IdSets.toggled(config.blastFurnaceManualEquipment(), BlastFurnace.MANUAL_EQUIPMENT_OBJECTS),
-			IdSets.toggled(config.blastFurnaceCoffer(), BlastFurnace.COFFER_OBJECTS),
-			IdSets.toggled(config.blastFurnaceSink(), BlastFurnace.SINK_OBJECTS),
-			IdSets.toggled(config.blastFurnaceRoomDecoration(), BlastFurnace.ROOM_DECORATION_OBJECTS),
-			IdSets.toggled(config.blastFurnaceSmithingArea(), BlastFurnace.SMITHING_AREA_OBJECTS),
-			IdSets.toggled(config.blastFurnaceDepositBox(), BlastFurnace.DEPOSIT_BOX_OBJECTS),
-			IdSets.toggled(config.blastFurnaceConveyorRamp(), BlastFurnace.CONVEYOR_RAMP_OBJECTS));
+			IdSets.toggled(on && config.blastFurnaceMachinery(), BlastFurnace.MACHINERY_OBJECTS),
+			IdSets.toggled(on && config.blastFurnaceSmoke(), BlastFurnace.SMOKE_OBJECTS),
+			IdSets.toggled(on && config.blastFurnaceManualEquipment(), BlastFurnace.MANUAL_EQUIPMENT_OBJECTS),
+			IdSets.toggled(on && config.blastFurnaceCoffer(), BlastFurnace.COFFER_OBJECTS),
+			IdSets.toggled(on && config.blastFurnaceSink(), BlastFurnace.SINK_OBJECTS),
+			IdSets.toggled(on && config.blastFurnaceRoomDecoration(), BlastFurnace.ROOM_DECORATION_OBJECTS),
+			IdSets.toggled(on && config.blastFurnaceSmithingArea(), BlastFurnace.SMITHING_AREA_OBJECTS),
+			IdSets.toggled(on && config.blastFurnaceDepositBox(), BlastFurnace.DEPOSIT_BOX_OBJECTS),
+			IdSets.toggled(on && config.blastFurnaceConveyorRamp(), BlastFurnace.CONVEYOR_RAMP_OBJECTS));
 
-		hideItemSpawns = config.blastFurnaceItemSpawns();
+		hideItemSpawns = on && config.blastFurnaceItemSpawns();
 
 		hiddenNpcIds = IdSets.union(
-			IdSets.toggled(config.blastFurnaceOperatorDwarves(), BlastFurnace.OPERATOR_DWARF_NPCS),
-			IdSets.toggled(config.blastFurnaceMerchants(), BlastFurnace.MERCHANT_NPCS),
-			IdSets.toggled(config.blastFurnaceDeliveryMiners(), BlastFurnace.DELIVERY_MINER_NPCS));
+			IdSets.toggled(on && config.blastFurnaceOperatorDwarves(), BlastFurnace.OPERATOR_DWARF_NPCS),
+			IdSets.toggled(on && config.blastFurnaceMerchants(), BlastFurnace.MERCHANT_NPCS),
+			IdSets.toggled(on && config.blastFurnaceDeliveryMiners(), BlastFurnace.DELIVERY_MINER_NPCS));
 
 		playerHiding.rebuild(
-			config.blastFurnaceOtherPlayers(),
-			config.blastFurnaceOtherPlayers2d(),
-			config.blastFurnaceOtherPlayersPets(),
+			on && config.blastFurnaceOtherPlayers(),
+			on && config.blastFurnaceOtherPlayers2d(),
+			on && config.blastFurnaceOtherPlayersPets(),
 			config.blastFurnaceShowFriends());
 
 		return !previousObjectIds.equals(hiddenObjectIds);

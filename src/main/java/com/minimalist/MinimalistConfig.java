@@ -2,6 +2,7 @@
 // Copyright (c) 2026, Jake Vollkommer
 package com.minimalist;
 
+import java.time.Instant;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
@@ -20,6 +21,12 @@ public interface MinimalistConfig extends Config
 		position = 0
 	)
 	String gotrSection = "gotrSection";
+
+	@ConfigItem(keyName = "gotrEnabled", name = "Enable", description = "Master switch for all Guardians of the Rift hiding", section = gotrSection, position = -1)
+	default boolean gotrEnabled()
+	{
+		return true;
+	}
 
 	@ConfigItem(keyName = "gotrAbyssScenery", name = "Hide abyss scenery", description = "Whale-fall, kelp, lace, statues, and other backdrop decoration", section = gotrSection, position = 0)
 	default boolean gotrAbyssScenery()
@@ -154,6 +161,12 @@ public interface MinimalistConfig extends Config
 	)
 	String blastFurnaceSection = "blastFurnaceSection";
 
+	@ConfigItem(keyName = "blastFurnaceEnabled", name = "Enable", description = "Master switch for all Blast Furnace hiding", section = blastFurnaceSection, position = -1)
+	default boolean blastFurnaceEnabled()
+	{
+		return true;
+	}
+
 	@ConfigItem(keyName = "blastFurnaceOperatorDwarves", name = "Hide operator dwarves", description = "Dumpy, Stumpy, Pumpy, Numpty, and Thumpy working the machinery", section = blastFurnaceSection, position = 0)
 	default boolean blastFurnaceOperatorDwarves()
 	{
@@ -187,7 +200,7 @@ public interface MinimalistConfig extends Config
 	@ConfigItem(keyName = "blastFurnaceManualEquipment", name = "Hide manual equipment", description = "Pedals, pump, stove, coke, and the temperature gauge; needed on non-official worlds and used for niche Strength, Agility, and Firemaking training", section = blastFurnaceSection, position = 5)
 	default boolean blastFurnaceManualEquipment()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(keyName = "blastFurnaceCoffer", name = "Hide coffer", description = "Only official worlds need the coffer; hide it if you run the furnace manually", section = blastFurnaceSection, position = 6)
@@ -199,7 +212,7 @@ public interface MinimalistConfig extends Config
 	@ConfigItem(keyName = "blastFurnaceSink", name = "Hide sink", description = "The Fill-bucket sink, unnecessary with ice or smiths gloves", section = blastFurnaceSection, position = 7)
 	default boolean blastFurnaceSink()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(keyName = "blastFurnaceRoomDecoration", name = "Hide room decoration", description = "Shelves, boxes, crates, the table, and lamps", section = blastFurnaceSection, position = 8)
@@ -211,7 +224,7 @@ public interface MinimalistConfig extends Config
 	@ConfigItem(keyName = "blastFurnaceSmithingArea", name = "Hide smithing area", description = "The anvils and the fence and gate around them; the fence still blocks walking", section = blastFurnaceSection, position = 9)
 	default boolean blastFurnaceSmithingArea()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(keyName = "blastFurnaceDepositBox", name = "Hide bank deposit box", description = "The deposit box next to the bank chest; the bank chest always shows", section = blastFurnaceSection, position = 10)
@@ -223,19 +236,19 @@ public interface MinimalistConfig extends Config
 	@ConfigItem(keyName = "blastFurnaceConveyorRamp", name = "Hide conveyor ramp", description = "The wooden ramp up to the conveyor belt; it still blocks and carries walking", section = blastFurnaceSection, position = 11)
 	default boolean blastFurnaceConveyorRamp()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(keyName = "blastFurnaceItemSpawns", name = "Hide item spawns", description = "The bucket, spade, and hammer ground spawns; keep visible if you run the furnace manually", section = blastFurnaceSection, position = 16)
 	default boolean blastFurnaceItemSpawns()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(keyName = "blastFurnaceOtherPlayers", name = "Hide other players", description = "Hide other players while at the Blast Furnace", section = blastFurnaceSection, position = 12)
 	default boolean blastFurnaceOtherPlayers()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(keyName = "blastFurnaceShowFriends", name = "Show friends", description = "Keep friends visible when hiding other players", section = blastFurnaceSection, position = 13)
@@ -247,13 +260,13 @@ public interface MinimalistConfig extends Config
 	@ConfigItem(keyName = "blastFurnaceOtherPlayers2d", name = "Hide other players 2D", description = "Hide other players' overhead text, hitsplats, and health bars while at the Blast Furnace", section = blastFurnaceSection, position = 14)
 	default boolean blastFurnaceOtherPlayers2d()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(keyName = "blastFurnaceOtherPlayersPets", name = "Hide other players' pets", description = "Hide pets that are not yours while at the Blast Furnace", section = blastFurnaceSection, position = 15)
 	default boolean blastFurnaceOtherPlayersPets()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigSection(
@@ -263,18 +276,21 @@ public interface MinimalistConfig extends Config
 	)
 	String feedbackSection = "feedbackSection";
 
+	// ConfigPanel renders a label for every config item but only builds an editor for
+	// the types it knows about. Instant has no editor, so this row shows as read-only
+	// text, and the text lives in the annotation so it can never go stale in a profile.
 	@ConfigItem(
-		keyName = "scopeNote",
-		name = "About",
-		description = "What Minimalist covers today and where it is going",
+		keyName = "aboutNote",
+		name = "<html><body style='margin:0;width:165px'>Minimalist currently supports Guardians of the Rift "
+			+ "and the Blast Furnace. The intention is to bring minimalism to more of the game over time, "
+			+ "feature requests are encouraged!</body></html>",
+		description = "",
 		section = feedbackSection,
 		position = 0
 	)
-	default String scopeNote()
+	default Instant aboutNote()
 	{
-		return "Minimalist currently supports Guardians of the Rift and the Blast Furnace. "
-			+ "The intention is to bring minimalism to other areas of the game over time - "
-			+ "feature requests are encouraged!";
+		return Instant.EPOCH;
 	}
 
 	@ConfigItem(

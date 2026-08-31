@@ -38,7 +38,7 @@ public class AltarContent implements ContentArea
 	public boolean rebuildFromConfig()
 	{
 		boolean previous = hideAltarScenery;
-		hideAltarScenery = config.gotrAltarScenery();
+		hideAltarScenery = config.gotrEnabled() && config.gotrAltarScenery();
 		return previous != hideAltarScenery;
 	}
 

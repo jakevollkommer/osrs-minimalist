@@ -64,34 +64,35 @@ public class GotrContent implements ContentArea
 		Set<Integer> previousObjectIds = hiddenObjectIds;
 		boolean previousArenaGenerics = hideArenaGenericScenery;
 
-		hideInactiveStatues = config.gotrGuardianStatues();
-		hideProjectiles = config.gotrProjectiles();
-		hideArenaGenericScenery = config.gotrAbyssScenery();
+		boolean on = config.gotrEnabled();
+		hideInactiveStatues = on && config.gotrGuardianStatues();
+		hideProjectiles = on && config.gotrProjectiles();
+		hideArenaGenericScenery = on && config.gotrAbyssScenery();
 		playerHiding.rebuild(
-			config.gotrOtherPlayers(),
-			config.gotrOtherPlayers2d(),
-			config.gotrOtherPlayersPets(),
+			on && config.gotrOtherPlayers(),
+			on && config.gotrOtherPlayers2d(),
+			on && config.gotrOtherPlayersPets(),
 			config.gotrShowFriends());
 
 		hiddenObjectIds = IdSets.union(
-			IdSets.toggled(config.gotrAbyssScenery(), GotrArena.ABYSS_SCENERY_OBJECTS),
-			IdSets.toggled(config.gotrGuardianRemains(), GotrArena.GUARDIAN_REMAINS_OBJECTS),
-			IdSets.toggled(config.gotrEssencePiles(), GotrArena.ESSENCE_PILE_OBJECTS),
-			IdSets.toggled(config.gotrBarriersAndCells(), GotrArena.BARRIER_AND_CELL_OBJECTS),
-			IdSets.toggled(config.gotrEntranceScenery(), GotrArena.ENTRANCE_SCENERY_OBJECTS),
-			IdSets.toggled(config.gotrRain(), GotrArena.RAIN_OBJECTS));
+			IdSets.toggled(on && config.gotrAbyssScenery(), GotrArena.ABYSS_SCENERY_OBJECTS),
+			IdSets.toggled(on && config.gotrGuardianRemains(), GotrArena.GUARDIAN_REMAINS_OBJECTS),
+			IdSets.toggled(on && config.gotrEssencePiles(), GotrArena.ESSENCE_PILE_OBJECTS),
+			IdSets.toggled(on && config.gotrBarriersAndCells(), GotrArena.BARRIER_AND_CELL_OBJECTS),
+			IdSets.toggled(on && config.gotrEntranceScenery(), GotrArena.ENTRANCE_SCENERY_OBJECTS),
+			IdSets.toggled(on && config.gotrRain(), GotrArena.RAIN_OBJECTS));
 
 		hiddenNpcIds = IdSets.union(
-			IdSets.toggled(config.gotrAbyssalCreatures(), GotrNpcs.ABYSSAL_CREATURES),
-			IdSets.toggled(config.gotrSummonedGuardians(), GotrNpcs.SUMMONED_GUARDIANS),
-			IdSets.toggled(config.gotrApprentices(), GotrNpcs.APPRENTICES),
-			IdSets.toggled(config.gotrRick(), GotrNpcs.RICK),
-			IdSets.toggled(config.gotrBarrierHitsplats(), GotrNpcs.BARRIER_HITPOINT_HOLDERS));
+			IdSets.toggled(on && config.gotrAbyssalCreatures(), GotrNpcs.ABYSSAL_CREATURES),
+			IdSets.toggled(on && config.gotrSummonedGuardians(), GotrNpcs.SUMMONED_GUARDIANS),
+			IdSets.toggled(on && config.gotrApprentices(), GotrNpcs.APPRENTICES),
+			IdSets.toggled(on && config.gotrRick(), GotrNpcs.RICK),
+			IdSets.toggled(on && config.gotrBarrierHitsplats(), GotrNpcs.BARRIER_HITPOINT_HOLDERS));
 
 		hiddenWidgets = IdSets.union(
-			IdSets.toggled(config.gotrHudPortalTimer(), Set.of(GotrHud.PORTAL_TIMER_COMPONENT)),
-			IdSets.toggled(config.gotrHudGuardianCounter(), Set.of(GotrHud.GUARDIAN_COUNTER_COMPONENT)),
-			IdSets.toggled(config.gotrHudPortalLocation(), Set.of(GotrHud.PORTAL_LOCATION_COMPONENT)));
+			IdSets.toggled(on && config.gotrHudPortalTimer(), Set.of(GotrHud.PORTAL_TIMER_COMPONENT)),
+			IdSets.toggled(on && config.gotrHudGuardianCounter(), Set.of(GotrHud.GUARDIAN_COUNTER_COMPONENT)),
+			IdSets.toggled(on && config.gotrHudPortalLocation(), Set.of(GotrHud.PORTAL_LOCATION_COMPONENT)));
 
 		return !previousObjectIds.equals(hiddenObjectIds)
 			|| previousArenaGenerics != hideArenaGenericScenery;
