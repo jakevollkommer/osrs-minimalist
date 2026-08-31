@@ -245,7 +245,7 @@ public interface MinimalistConfig extends Config
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceItemSpawns", name = "Hide item spawns", description = "The bucket, spade, and hammer ground spawns; keep visible if you run the furnace manually", section = blastFurnaceSection, position = 17)
+	@ConfigItem(keyName = "blastFurnaceItemSpawns", name = "Hide item spawns", description = "The bucket, spade, and hammer ground spawns; keep visible if you run the furnace manually", section = blastFurnaceSection, position = 18)
 	default boolean blastFurnaceItemSpawns()
 	{
 		return true;
@@ -257,25 +257,25 @@ public interface MinimalistConfig extends Config
 		return false;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceOtherPlayers", name = "Hide other players", description = "Hide other players while at the Blast Furnace", section = blastFurnaceSection, position = 13)
+	@ConfigItem(keyName = "blastFurnaceOtherPlayers", name = "Hide other players", description = "Hide other players while at the Blast Furnace", section = blastFurnaceSection, position = 14)
 	default boolean blastFurnaceOtherPlayers()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceShowFriends", name = "Show friends", description = "Keep friends visible when hiding other players", section = blastFurnaceSection, position = 14)
+	@ConfigItem(keyName = "blastFurnaceShowFriends", name = "Show friends", description = "Keep friends visible when hiding other players", section = blastFurnaceSection, position = 15)
 	default boolean blastFurnaceShowFriends()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceOtherPlayers2d", name = "Hide other players 2D", description = "Hide other players' overhead text, hitsplats, and health bars while at the Blast Furnace", section = blastFurnaceSection, position = 15)
+	@ConfigItem(keyName = "blastFurnaceOtherPlayers2d", name = "Hide other players 2D", description = "Hide other players' overhead text, hitsplats, and health bars while at the Blast Furnace", section = blastFurnaceSection, position = 16)
 	default boolean blastFurnaceOtherPlayers2d()
 	{
 		return true;
 	}
 
-	@ConfigItem(keyName = "blastFurnaceOtherPlayersPets", name = "Hide other players' pets", description = "Hide pets that are not yours while at the Blast Furnace", section = blastFurnaceSection, position = 16)
+	@ConfigItem(keyName = "blastFurnaceOtherPlayersPets", name = "Hide other players' pets", description = "Hide pets that are not yours while at the Blast Furnace", section = blastFurnaceSection, position = 17)
 	default boolean blastFurnaceOtherPlayersPets()
 	{
 		return true;
